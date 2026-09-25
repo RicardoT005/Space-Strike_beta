@@ -55,7 +55,7 @@
   </div>
 
   <button type="button" class="menu-button" id="backButton" style="width:min(360px,90vw)">&lt; VOLVER</button>
-  <div class="version">V2.6.11</div>
+  <div class="version">V2.6.12</div>
 </main>
 <div id="transition"></div>
 <script src="../javascript/upgrades.js"></script>
@@ -87,7 +87,7 @@
     var name="";
     try{ if(window.SpaceStrikePlayer&&SpaceStrikePlayer.getName) name=SpaceStrikePlayer.getName()||""; }catch(e){}
     if(window.SpaceStrikePremium&&SpaceStrikePremium.notifyPaid) SpaceStrikePremium.notifyPaid(name);
-    document.getElementById("payMsg").textContent="Aviso enviado. En cuanto se confirme el pago te daremos un código.";
+    document.getElementById("payMsg").textContent="Se abre WhatsApp + correo para avisarme. También push ntfy. Cuando confirme te doy el código.";
   };
   document.getElementById("redeemBtn").onclick=function(){
     var code=document.getElementById("codeInput").value;

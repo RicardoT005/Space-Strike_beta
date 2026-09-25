@@ -5,8 +5,10 @@
 
 const PREMIUM_KEY = "spaceStrikePremium";
 const MP_LINK = "https://mpago.la/1D6UECL";
-/** Cambia este topic: en el celular instala ntfy y suscríbete al mismo nombre */
+/** App ntfy → suscríbete al topic */
 const NTFY_TOPIC = "spacestrike-premium-ricardo";
+const OWNER_EMAIL = "ricardotorresgalvez005@gmail.com";
+const OWNER_WHATSAPP = "525624944382";
 const PREMIUM_CODE_KEY = "spaceStrikePremiumCode";
 
 /** Official redeem codes (change/rotate in production) */
@@ -166,30 +168,60 @@ function openMercadoPago() {
 }
 
 function notifyPaid(extra) {
+    var pilot = "";
+    var email = "";
     try {
-        var pilot = "";
-        var email = "";
-        try {
-            if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.getName) {
-                pilot = window.SpaceStrikePlayer.getName() || "";
-            }
-        } catch (e1) {}
-        try {
-            if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.user && window.SpaceStrikeAuth.user()) {
-                email = window.SpaceStrikeAuth.user().email || "";
-            }
-        } catch (e2) {}
-        var msg = "Space Strike PREMIUM — YA PAGUÉ\n" +
-            "Piloto: " + (pilot || extra || "?") + "\n" +
-            "Email: " + (email || "sin Google") + "\n" +
-            "Hora: " + new Date().toLocaleString() + "\n" +
-            "Revisa Mercado Pago y envía código de un uso.";
+        if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.getName) {
+            pilot = window.SpaceStrikePlayer.getName() || "";
+        }
+    } catch (e1) {}
+    try {
+        if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.user && window.SpaceStrikeAuth.user()) {
+            email = window.SpaceStrikeAuth.user().email || "";
+        }
+    } catch (e2) {}
+    if (!pilot) pilot = String(extra || "").trim() || "desconocido";
+
+    var msg =
+        "SPACE STRIKE PREMIUM — YA PAGUÉ\n" +
+        "Piloto: " + pilot + "\n" +
+        "Email: " + (email || "sin Google") + "\n" +
+        "Monto: $49 MXN\n" +
+        "Hora: " + new Date().toLocaleString("es-MX") + "\n" +
+        "Acción: confirma en Mercado Pago y envía código de un uso.";
+
+    /* 1) Push al celular (app ntfy, topic spacestrike-premium-ricardo) */
+    try {
         fetch("https://ntfy.sh/" + NTFY_TOPIC, {
             method: "POST",
-            headers: { "Title": "Space Strike — compra Premium", "Priority": "high", "Tags": "moneybag,video_game" },
+            headers: {
+                "Title": "Space Strike — compra Premium",
+                "Priority": "high",
+                "Tags": "moneybag,star"
+            },
             body: msg
         }).catch(function () {});
-    } catch (e) {}
+    } catch (e3) {}
+
+    /* 2) WhatsApp a tu número */
+    try {
+        window.open(
+            "https://wa.me/" + OWNER_WHATSAPP + "?text=" + encodeURIComponent(msg),
+            "_blank"
+        );
+    } catch (e4) {}
+
+    /* 3) Correo Gmail */
+    try {
+        setTimeout(function () {
+            window.location.href =
+                "mailto:" + OWNER_EMAIL +
+                "?subject=" + encodeURIComponent("Space Strike Premium — YA PAGUÉ") +
+                "&body=" + encodeURIComponent(msg);
+        }, 700);
+    } catch (e5) {}
+
+    return { ok: true };
 }
 
 window.SpaceStrikePremium = {

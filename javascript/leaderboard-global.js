@@ -89,6 +89,17 @@
      * - If new score is higher: update
      * - If new score is lower or equal: keep existing (no write)
      */
+    function isPlayerPremium() {
+        try {
+            if (window.SpaceStrikePremium && window.SpaceStrikePremium.isPremium) {
+                return !!window.SpaceStrikePremium.isPremium();
+            }
+            return localStorage.getItem("spaceStrikePremium") === "1";
+        } catch (e) {
+            return false;
+        }
+    }
+
     function submitScore(name, score, wave) {
         name = resolveName(name);
         score = Math.floor(Number(score) || 0);
@@ -121,7 +132,8 @@
                     name: name,
                     score: score,
                     wave: wave,
-                    date: Date.now()
+                    date: Date.now(),
+                    premium: isPlayerPremium()
                 };
 
                 if (!snap.exists) {
@@ -133,10 +145,10 @@
 
                 var prev = snap.data() || {};
                 var prevScore = Number(prev.score) || 0;
-                if (score > prevScore) {
+                if (score > prevScore || (payload.premium && !prev.premium)) {
                     return ref.set(payload, { merge: true }).then(function () {
                         lastError = "";
-                        return { ok: true, action: "updated", previous: prevScore };
+                        return { ok: true, action: score > prevScore ? "updated" : "premium_flag", previous: prevScore };
                     });
                 }
 
@@ -168,7 +180,8 @@
                             name: d.name || "———",
                             score: Number(d.score) || 0,
                             wave: Number(d.wave) || 1,
-                            date: d.date || 0
+                            date: d.date || 0,
+                            premium: !!d.premium
                         });
                     });
                     lastError = "";
