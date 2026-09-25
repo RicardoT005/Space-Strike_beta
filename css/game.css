@@ -1770,6 +1770,11 @@ body {
     border-color: rgba(80,200,255,0.7);
     box-shadow: 0 0 12px rgba(0,140,255,0.25);
 }
+.ability-btn.locked {
+    pointer-events: auto;
+    filter: grayscale(0.7);
+    cursor: not-allowed;
+}
 .ability-btn.cooling {
     opacity: 0.55;
 }

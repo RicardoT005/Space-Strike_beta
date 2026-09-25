@@ -87,6 +87,30 @@ const UPGRADE_CATALOG = {
         maxLevel: 3,
         baseCost: 90,
         costScale: 1.4
+    },
+    abilityEmp: {
+        id: "abilityEmp",
+        name: "HABILIDAD EMP",
+        desc: "Congela a todos los enemigos ~1.2s. Actívala con el botón EMP o tecla 1.",
+        maxLevel: 1,
+        baseCost: 400,
+        costScale: 1
+    },
+    abilityOverdrive: {
+        id: "abilityOverdrive",
+        name: "HABILIDAD OVERDRIVE",
+        desc: "Más velocidad y cadencia ~3.5s. Botón OVER o tecla 2.",
+        maxLevel: 1,
+        baseCost: 450,
+        costScale: 1
+    },
+    abilityNova: {
+        id: "abilityNova",
+        name: "HABILIDAD NOVA",
+        desc: "Explosión que daña enemigos cercanos. Botón NOVA o tecla 3.",
+        maxLevel: 1,
+        baseCost: 500,
+        costScale: 1
     }
 };
 
@@ -98,6 +122,9 @@ const DEFAULT_UPGRADES = {
     helper: 0,
     moveSpeed: 0,
     pierce: 0,
+    abilityEmp: 0,
+    abilityOverdrive: 0,
+    abilityNova: 0,
     multiShot: 0,
     damage: 0,
     magnet: 0

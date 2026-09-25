@@ -762,6 +762,7 @@ const player = {
     baseFireRate: 165,
 
     invulnerable: 0,
+    canShoot: true,
 
     visible: true,
 
@@ -1147,7 +1148,7 @@ function resetPlayer() {
     player.fireCooldown = 0;
 
     player.invulnerable = 0;
-
+    player.canShoot = true;
     player.visible = true;
 
     player.canControl = true;
@@ -1360,6 +1361,7 @@ function updatePlayer(deltaTime) {
             player.invulnerable = 0;
             player.visible = true;
             player.canControl = true;
+            player.canShoot = true;
 
         }
 
@@ -1861,7 +1863,7 @@ function attemptPlayerFire() {
         (invulnerabilidad tras perder una vida).
     */
 
-    if (!player.visible || !player.canControl) {
+    if (!player.visible || !player.canControl || player.canShoot === false) {
 
         return;
 
@@ -3229,12 +3231,13 @@ function damagePlayer() {
     updateComboUI();
 
     /*
-        2 segundos invulnerable + sin control
-        + invisible (parpadeo en draw).
+        2 segundos invulnerable: puede moverse para escapar,
+        pero no disparar. Parpadeo en draw.
     */
     player.invulnerable = 2.0;
     player.visible = true; /* drawPlayer parpadea con invulnerable */
-    player.canControl = false;
+    player.canControl = true; /* movimiento permitido */
+    player.canShoot = false; /* sin disparo hasta reaparecer del todo */
 
     game.screenShake = 12;
 
@@ -4901,6 +4904,10 @@ function updateRandomEvents(dt) {
 
 function activateAbility(id) {
     if (!window.SpaceStrikeAbilities || !game.running || game.paused || game.gameOver) return;
+    if (window.SpaceStrikeAbilities.owns && !window.SpaceStrikeAbilities.owns(id)) {
+        if (systemStatus) systemStatus.textContent = "Compra la habilidad en la TIENDA";
+        return;
+    }
     const ok = window.SpaceStrikeAbilities.tryActivate(id, {
         enemies: enemies,
         player: player,
@@ -4922,12 +4929,19 @@ function updateAbilityUI() {
     ["emp", "overdrive", "nova"].forEach(function (id) {
         const btn = document.getElementById("ability-" + id);
         if (!btn) return;
+        const owned = !window.SpaceStrikeAbilities.owns || window.SpaceStrikeAbilities.owns(id);
+        btn.classList.toggle("locked", !owned);
+        btn.style.opacity = owned ? "" : "0.35";
+        btn.title = owned
+            ? ((window.SpaceStrikeAbilities.defs[id] && window.SpaceStrikeAbilities.defs[id].desc) || id)
+            : "Bloqueada — cómprala en la Tienda";
         const s = st[id];
-        btn.classList.toggle("ready", s.cd <= 0);
-        btn.classList.toggle("cooling", s.cd > 0);
+        btn.classList.toggle("ready", owned && s.cd <= 0);
+        btn.classList.toggle("cooling", owned && s.cd > 0);
         const cdEl = btn.querySelector(".ability-cd");
         if (cdEl) {
-            cdEl.textContent = s.cd > 0 ? Math.ceil(s.cd) + "s" : "";
+            if (!owned) cdEl.textContent = "🔒";
+            else cdEl.textContent = s.cd > 0 ? Math.ceil(s.cd) + "s" : "";
         }
     });
 }
@@ -5728,9 +5742,32 @@ function updateMobileControlsVisibility() {
 }
 
 
+
+function bindAbilityButtons() {
+    ["emp", "overdrive", "nova"].forEach(function (id) {
+        var btn = document.getElementById("ability-" + id);
+        if (!btn) return;
+        function fire(ev) {
+            if (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+            }
+            activateAbility(id);
+        }
+        btn.addEventListener("click", fire);
+        btn.addEventListener("touchend", fire, { passive: false });
+        btn.addEventListener("pointerup", function (ev) {
+            if (ev.pointerType === "touch" || ev.pointerType === "pen") return;
+            fire(ev);
+        });
+    });
+}
+
 function initializeGame() {
 
     loadGameSettings();
+
+    bindAbilityButtons();
 
     parseGameModeFromURL();
 

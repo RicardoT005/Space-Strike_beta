@@ -32,7 +32,20 @@ const abilityState = {
     overdriveActive: 0
 };
 
+function ownsAbility(id) {
+    try {
+        if (window.SpaceStrikeUpgrades && window.SpaceStrikeUpgrades.loadUpgrades) {
+            var u = window.SpaceStrikeUpgrades.loadUpgrades();
+            if (id === "emp") return (u.abilityEmp || 0) >= 1;
+            if (id === "overdrive") return (u.abilityOverdrive || 0) >= 1;
+            if (id === "nova") return (u.abilityNova || 0) >= 1;
+        }
+    } catch (e) {}
+    return false;
+}
+
 function abilityReady(id) {
+    if (!ownsAbility(id)) return false;
     if (id === "emp") return abilityState.empCd <= 0;
     if (id === "overdrive") return abilityState.overdriveCd <= 0;
     if (id === "nova") return abilityState.novaCd <= 0;
@@ -130,6 +143,7 @@ if (typeof window !== "undefined") {
         update: updateAbilities,
         tryActivate: tryActivateAbility,
         ready: abilityReady,
+        owns: ownsAbility,
         isEmpActive: isEmpActive,
         isOverdriveActive: isOverdriveActive,
         reset: resetAbilities,

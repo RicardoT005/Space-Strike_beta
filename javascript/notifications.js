@@ -4,6 +4,21 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v2616",
+        title: "PARCHE 2.6.16",
+        body: "Habilidades EMP/OVER/NOVA se compran en la Tienda y se activan tocando los botones. Tras perder una vida puedes moverte. Jefe Overlord (aventura x10 / infinito x50). Premium admin y badge dorado."
+    },
+    {
+        id: "v2615",
+        title: "PARCHE 2.6.15",
+        body: "Al perder una vida puedes moverte (sin disparar) durante la invulnerabilidad para escapar."
+    },
+    {
+        id: "v2614",
+        title: "JEFE OVERLORD",
+        body: "Nuevo jefe con sprite. Aventura cada 10 niveles · Infinito cada 50 oleadas."
+    },
+    {
         id: "v260",
         title: "NAVE NEBULA ★★",
         body: "Nave especial exclusiva (código). Doble cañón, escudo 3, disparo rojo, 10% láser."
