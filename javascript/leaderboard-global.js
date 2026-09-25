@@ -214,10 +214,52 @@
         });
     }
 
+
+    /**
+     * Set premium badge on ranking for current pilot WITHOUT needing a higher score.
+     */
+    function markPremium(nameOpt) {
+        var name = resolveName(nameOpt);
+        if (name.length < 7 || name.length > 12) {
+            try {
+                if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.getName) {
+                    name = resolveName(window.SpaceStrikePlayer.getName());
+                }
+            } catch (e) {}
+        }
+        if (name.length < 7 || name.length > 12) {
+            return Promise.resolve({ ok: false, reason: "name" });
+        }
+        var docId = nameToId(name);
+        if (!docId) return Promise.resolve({ ok: false, reason: "name" });
+
+        return init().then(function (ok) {
+            if (!ok || !db) return { ok: false, reason: "offline" };
+            var ref = db.collection("scores").doc(docId);
+            return ref.get().then(function (snap) {
+                var payload = { premium: true, name: name };
+                if (!snap.exists) {
+                    /* create minimal row so badge can show */
+                    payload.score = 0;
+                    payload.wave = 1;
+                    payload.date = Date.now();
+                }
+                return ref.set(payload, { merge: true }).then(function () {
+                    return { ok: true };
+                });
+            });
+        }).catch(function (err) {
+            console.warn("[SpaceStrike] markPremium", err);
+            return { ok: false, error: String(err && err.message || err) };
+        });
+    }
+
     window.SpaceStrikeGlobalLB = {
         init: init,
         submit: submitScore,
         top: fetchTop,
+        markPremium: markPremium,
+        nameToId: nameToId,
         isReady: function () { return ready; },
         lastError: function () { return lastError; }
     };

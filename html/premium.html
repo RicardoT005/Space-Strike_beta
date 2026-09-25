@@ -5,63 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#030407">
 <title>SPACE STRIKE — PREMIUM</title>
-<link rel="stylesheet" href="../css/shop.css">
 <style>
-.premium-main{position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 14px 48px}
-.page-title{font-size:clamp(28px,6vw,42px);font-weight:900;letter-spacing:6px;text-align:center;background:linear-gradient(90deg,#ffd56a,#ff8c42,#ffd56a);-webkit-background-clip:text;background-clip:text;color:transparent}
-.page-subtitle{margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(255,200,120,.65);text-align:center}
-.perk-list{width:min(420px,94vw);margin-top:12px}
-.perk{padding:12px 14px;margin-bottom:8px;border:1px solid rgba(255,180,60,.28);border-radius:8px;background:linear-gradient(135deg,rgba(40,25,5,.9),rgba(10,12,20,.9))}
-.perk h3{font-size:12px;letter-spacing:2px;color:#ffd56a;margin-bottom:4px}
-.perk p{font-size:12px;color:rgba(230,210,180,.85);line-height:1.4}
-.status{width:min(420px,94vw);padding:12px;margin:12px 0;border-radius:8px;text-align:center;font-weight:800;letter-spacing:2px}
-.status.on{border:1px solid rgba(80,220,140,.5);color:#9fecc8;background:rgba(0,40,25,.5)}
-.status.off{border:1px solid rgba(255,180,60,.35);color:#ffd56a;background:rgba(40,25,5,.5)}
-.redeem-box{width:min(420px,94vw);display:flex;gap:8px;margin:10px 0 12px}
-.redeem-box input{flex:1;height:44px;padding:0 12px;border-radius:6px;border:1px solid rgba(255,180,60,.35);background:rgba(8,12,20,.9);color:#fff;letter-spacing:1px;font-size:13px}
-.buy-btn,.menu-button,.secondary-btn{height:44px;padding:0 14px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,180,60,.45);background:linear-gradient(90deg,rgba(120,70,10,.7),rgba(40,25,5,.9));color:#ffd56a;font-weight:800;letter-spacing:1px;font-size:12px}
-.buy-btn{width:min(420px,94vw);margin-bottom:8px}
-.secondary-btn{width:min(420px,94vw);margin-bottom:8px;background:rgba(20,30,50,.8);border-color:rgba(100,160,220,.35);color:#b8d8f8}
-.note{width:min(420px,94vw);font-size:11px;color:rgba(200,180,140,.65);line-height:1.45;margin-bottom:12px}
-.version{position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(180,140,80,.4)}
-#transition{position:fixed;inset:0;background:#000;z-index:100;opacity:0;pointer-events:none;transition:opacity .4s}
-#transition.active{opacity:1;pointer-events:all}
-#payMsg{text-align:center;min-height:18px}
+body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
+#space{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.main{position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 14px 48px;}
+.page-title{font-size:clamp(28px,6vw,42px);font-weight:900;letter-spacing:6px;text-align:center;
+  background:linear-gradient(90deg,#ffd56a,#ff8c42,#ffd56a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.page-subtitle{margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(255,200,120,.65);text-align:center;}
+.note{width:min(420px,94vw);font-size:12px;color:rgba(255,220,180,.7);line-height:1.45;margin:12px 0;text-align:center;}
+.status{margin:8px 0;font-size:13px;font-weight:800;letter-spacing:1px;}
+.status.on{color:#ffd56a;}
+.status.off{color:rgba(200,180,160,.5);}
+.buy-btn,.menu-button{width:min(420px,94vw);height:48px;border-radius:8px;cursor:pointer;font-weight:800;letter-spacing:1px;font-size:13px;
+  border:1px solid rgba(255,180,60,.4);background:linear-gradient(90deg,rgba(180,100,20,.7),rgba(40,20,8,.9));color:#ffe8c0;margin:6px 0;}
+.redeem-box{width:min(420px,94vw);display:flex;gap:8px;margin:10px 0 12px;}
+.redeem-box input{flex:1;height:44px;padding:0 12px;border-radius:6px;border:1px solid rgba(255,180,60,.35);
+  background:rgba(8,12,20,.9);color:#fff;letter-spacing:1px;font-size:13px;text-transform:uppercase;}
+#payMsg{min-height:20px;font-size:12px;color:rgba(255,220,160,.75);text-align:center;margin:4px 0 12px;}
+.version{position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(255,200,120,.35);}
+#transition{position:fixed;inset:0;background:#000;z-index:100;opacity:0;pointer-events:none;transition:opacity .4s;}
+#transition.active{opacity:1;pointer-events:all;}
+#adminPanel{display:none;width:min(420px,94vw);margin-top:18px;padding:14px;border-radius:12px;
+  border:1px solid rgba(255,180,80,.4);background:rgba(40,28,10,.55);}
+#adminPanel h3{margin:0 0 10px;font-size:12px;letter-spacing:2px;color:#ffd56a;text-align:center;}
+#adminPanel label{font-size:10px;color:rgba(255,220,160,.65);letter-spacing:1px;display:block;margin-top:8px;}
+#adminPanel input{width:100%;box-sizing:border-box;height:42px;padding:0 12px;border-radius:6px;border:1px solid rgba(255,180,60,.35);
+  background:rgba(8,12,20,.9);color:#fff;font-size:13px;margin-top:4px;}
+#generatedCode{font-size:15px;font-weight:800;letter-spacing:2px;color:#9fecc8;text-align:center;word-break:break-all;min-height:22px;margin-top:8px;}
+#adminMsg{font-size:12px;text-align:center;min-height:18px;margin-top:6px;color:#ffd56a;}
+.users-table{width:100%;margin-top:12px;font-size:11px;border-collapse:collapse;}
+.users-table th,.users-table td{padding:6px 4px;border-bottom:1px solid rgba(255,180,60,.2);text-align:left;}
+.users-table th{color:#ffd56a;letter-spacing:1px;font-size:10px;}
+.users-table .prem{color:#ffd56a;font-weight:800;}
+.users-scroll{max-height:220px;overflow-y:auto;margin-top:8px;}
+.mini-btn{height:28px;padding:0 8px;font-size:10px;border-radius:4px;cursor:pointer;
+  border:1px solid rgba(255,180,60,.4);background:rgba(60,40,10,.8);color:#ffe8c0;font-weight:700;}
 </style>
 </head>
 <body>
 <div id="space"></div>
-<main class="premium-main">
+<main class="main">
   <div class="page-title">PREMIUM</div>
   <div class="page-subtitle">MULTISOFT // $49 MXN</div>
   <div id="premStatus" class="status off">NO ACTIVO</div>
-
-  <div class="perk-list">
-    <div class="perk"><h3>✦ +50% CRÉDITOS</h3><p>Más monedas en infinito y aventura.</p></div>
-    <div class="perk"><h3>✦ NAVES EXCLUSIVAS</h3><p>PHOENIX y VOID RUNNER.</p></div>
-    <div class="perk"><h3>✦ 300 CRÉDITOS AL ACTIVAR</h3><p>Bonus de una sola vez.</p></div>
-    <div class="perk"><h3>✦ PROGRESO EN LA NUBE</h3><p>Con login Google no pierdes Premium ni partidas entre celulares.</p></div>
-  </div>
-
-  <p class="note">1) Entra con Google (menú) · 2) Toca COMPRAR y paga en Mercado Pago · 3) Toca YA PAGUÉ · 4) Cuando te den el código, canjéalo aquí.</p>
-
+  <p class="note">1) Entra con Google (menú) · 2) Toca COMPRAR y paga en Mercado Pago · 3) Toca YA PAGUÉ · 4) Cuando te den el código, canjéalo aquí. El badge dorado en ranking se aplica al canjear (no hace falta superar tu récord).</p>
   <button type="button" class="buy-btn" id="buyBtn">COMPRAR PREMIUM · $49 MXN</button>
-  <button type="button" class="secondary-btn" id="paidBtn">YA PAGUÉ — AVISAR</button>
-  <p class="note" id="payMsg"></p>
-
+  <button type="button" class="buy-btn" id="paidBtn" style="background:linear-gradient(90deg,rgba(40,80,40,.7),rgba(20,40,20,.9));border-color:rgba(100,200,100,.35);">YA PAGUÉ</button>
   <div class="redeem-box">
-    <input id="codeInput" type="text" placeholder="CÓDIGO DE ACTIVACIÓN" maxlength="32" autocomplete="off">
-    <button type="button" id="redeemBtn" class="buy-btn" style="width:auto">CANJEAR</button>
+    <input id="codeInput" type="text" placeholder="CÓDIGO" maxlength="32" autocomplete="off">
+    <button type="button" id="redeemBtn" class="buy-btn" style="width:auto;min-width:100px;">CANJEAR</button>
+  </div>
+  <div id="payMsg"></div>
+
+  <div id="adminPanel">
+    <h3>PANEL ADMIN · CÓDIGOS PREMIUM (1 USO)</h3>
+    <label>PREFIJO</label>
+    <input id="adminPrefix" type="text" value="VIP" maxlength="8">
+    <button type="button" class="buy-btn" id="createPremCodeBtn">GENERAR CÓDIGO DE UN USO</button>
+    <div id="adminMsg"></div>
+    <div id="generatedCode"></div>
+    <button type="button" class="buy-btn" id="copyPremCodeBtn" style="display:none;">COPIAR CÓDIGO</button>
+
+    <h3 style="margin-top:18px;">PILOTOS REGISTRADOS (RANKING)</h3>
+    <button type="button" class="buy-btn" id="refreshUsersBtn">ACTUALIZAR TABLA</button>
+    <div class="users-scroll">
+      <table class="users-table">
+        <thead><tr><th>#</th><th>PILOTO</th><th>SCORE</th><th>VIP</th><th></th></tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <button type="button" class="menu-button" id="backButton" style="width:min(360px,90vw)">&lt; VOLVER</button>
-  <div class="version">V2.6.12</div>
+  <button type="button" class="menu-button" id="backButton">&lt; VOLVER</button>
+  <div class="version">V2.6.13</div>
 </main>
 <div id="transition"></div>
-<script src="../javascript/upgrades.js"></script>
 <script src="../javascript/ships.js"></script>
 <script src="../javascript/premium.js"></script>
 <script src="../javascript/auth.js"></script>
+<script src="../javascript/leaderboard-global.js"></script>
 <script src="../javascript/premium-codes.js"></script>
 <script src="../javascript/fullscreen.js"></script>
 <script>
@@ -72,12 +94,76 @@
     s.style.cssText="position:absolute;background:#fff;border-radius:50%;width:"+(Math.random()*2+.4)+"px;height:"+(Math.random()*2+.4)+"px;left:"+Math.random()*100+"%;top:"+Math.random()*100+"%;";
     space.appendChild(s);
   }
+  var lastCode="";
   function refresh(){
     var on=window.SpaceStrikePremium&&SpaceStrikePremium.isPremium();
     var el=document.getElementById("premStatus");
     el.textContent=on?"★ PREMIUM ACTIVO":"NO ACTIVO";
     el.className="status "+(on?"on":"off");
   }
+  function showAdmin(){
+    var panel=document.getElementById("adminPanel");
+    if(window.SpaceStrikeCodes&&SpaceStrikeCodes.isAdmin&&SpaceStrikeCodes.isAdmin()){
+      panel.style.display="block";
+      loadUsers();
+    } else {
+      panel.style.display="none";
+    }
+  }
+  function loadUsers(){
+    var body=document.getElementById("usersBody");
+    body.innerHTML="<tr><td colspan='5'>Cargando…</td></tr>";
+    if(!window.SpaceStrikeCodes||!SpaceStrikeCodes.listUsers){
+      body.innerHTML="<tr><td colspan='5'>Módulo no disponible</td></tr>";
+      return;
+    }
+    SpaceStrikeCodes.listUsers().then(function(res){
+      if(!res||!res.ok){
+        body.innerHTML="<tr><td colspan='5'>"+((res&&res.error)||"Error")+"</td></tr>";
+        return;
+      }
+      var rows=res.rows||[];
+      if(!rows.length){
+        body.innerHTML="<tr><td colspan='5'>Sin pilotos aún</td></tr>";
+        return;
+      }
+      body.innerHTML=rows.map(function(r,i){
+        return "<tr>"+
+          "<td>"+(i+1)+"</td>"+
+          "<td>"+r.name+"</td>"+
+          "<td>"+r.score+"</td>"+
+          "<td class='"+(r.premium?"prem":"")+"'>"+(r.premium?"★ SÍ":"—")+"</td>"+
+          "<td>"+(r.premium
+            ? "<button type='button' class='mini-btn' data-off='"+r.name+"'>Quitar</button>"
+            : "<button type='button' class='mini-btn' data-on='"+r.name+"'>VIP</button>")+
+          "</td></tr>";
+      }).join("");
+      body.querySelectorAll("[data-on]").forEach(function(btn){
+        btn.onclick=function(){
+          SpaceStrikeCodes.setUserPremium(btn.getAttribute("data-on"), true).then(function(r){
+            document.getElementById("adminMsg").textContent=r&&r.ok?"VIP aplicado":(r&&r.error)||"Error";
+            loadUsers();
+          });
+        };
+      });
+      body.querySelectorAll("[data-off]").forEach(function(btn){
+        btn.onclick=function(){
+          SpaceStrikeCodes.setUserPremium(btn.getAttribute("data-off"), false).then(function(r){
+            document.getElementById("adminMsg").textContent=r&&r.ok?"VIP quitado":(r&&r.error)||"Error";
+            loadUsers();
+          });
+        };
+      });
+    });
+  }
+  function boot(){
+    if(window.SpaceStrikeAuth&&SpaceStrikeAuth.init){
+      SpaceStrikeAuth.init().then(function(){ showAdmin(); });
+    }
+    setTimeout(showAdmin, 1500);
+  }
+  boot();
+
   document.getElementById("buyBtn").onclick=function(){
     document.getElementById("payMsg").textContent="Abriendo Mercado Pago…";
     if(window.SpaceStrikePremium&&SpaceStrikePremium.openPay) SpaceStrikePremium.openPay();
@@ -95,10 +181,40 @@
     msg.textContent="Validando…";
     var run=window.SpaceStrikeCodes?SpaceStrikeCodes.redeem(code):Promise.resolve(SpaceStrikePremium.redeem(code));
     Promise.resolve(run).then(function(res){
-      if(res&&res.ok){ msg.textContent="¡Premium activado!"; refresh(); if(window.SpaceStrikeAuth)SpaceStrikeAuth.push(); }
-      else msg.textContent=(res&&res.error)||"Código inválido";
+      if(res&&res.ok){
+        msg.textContent=res.message||"¡Premium activado! Badge en ranking listo.";
+        refresh();
+        if(window.SpaceStrikeAuth) SpaceStrikeAuth.push();
+      } else msg.textContent=(res&&(res.error||res.reason))||"Código inválido";
     });
   };
+  document.getElementById("createPremCodeBtn").onclick=function(){
+    var am=document.getElementById("adminMsg");
+    var gc=document.getElementById("generatedCode");
+    var copyBtn=document.getElementById("copyPremCodeBtn");
+    am.textContent="Creando…";
+    gc.textContent="";
+    copyBtn.style.display="none";
+    SpaceStrikeCodes.createCode({ prefix: document.getElementById("adminPrefix").value||"VIP" }).then(function(res){
+      if(res&&res.ok){
+        lastCode=res.code;
+        am.textContent="Código de un solo uso creado";
+        gc.textContent=res.code;
+        copyBtn.style.display="block";
+      } else {
+        am.textContent=(res&&res.error)||"Error";
+      }
+    });
+  };
+  document.getElementById("copyPremCodeBtn").onclick=function(){
+    if(!lastCode) return;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(lastCode).then(function(){
+        document.getElementById("adminMsg").textContent="Copiado";
+      });
+    } else prompt("Copia:", lastCode);
+  };
+  document.getElementById("refreshUsersBtn").onclick=loadUsers;
   document.getElementById("backButton").onclick=function(){
     document.getElementById("transition").classList.add("active");
     setTimeout(function(){location.href="../index.html";},400);

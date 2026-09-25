@@ -76,6 +76,12 @@ function redeemCode(code) {
 
 function activatePremium() {
     setPremium(true);
+    /* Badge dorado en ranking al instante (sin superar récord) */
+    try {
+        if (window.SpaceStrikeGlobalLB && window.SpaceStrikeGlobalLB.markPremium) {
+            window.SpaceStrikeGlobalLB.markPremium().catch(function () {});
+        }
+    } catch (eMark) {}
 
     /* Grant exclusive ships */
     if (window.SpaceStrikeShips) {

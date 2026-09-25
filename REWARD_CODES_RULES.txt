@@ -14,8 +14,10 @@ service cloud.firestore {
         && request.resource.data.score >= 0
         && request.resource.data.score <= 50000000
         && request.resource.data.wave is number;
+      // Mejor score O solo bandera premium (canje código / admin)
       allow update: if (request.resource.data.score is number
           && request.resource.data.score > resource.data.score)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['premium', 'name', 'date']))
         || (request.resource.data.premium == true);
       allow delete: if false;
     }
@@ -26,7 +28,9 @@ service cloud.firestore {
 
     match /premiumCodes/{code} {
       allow read: if true;
-      allow create: if true;
+      // Solo admin genera códigos (siempre un uso)
+      allow create: if request.auth != null
+        && request.auth.token.email == 'ricardotorresgalvez005@gmail.com';
       allow update: if resource.data.used == false
         && request.resource.data.used == true;
       allow delete: if false;
@@ -34,7 +38,6 @@ service cloud.firestore {
 
     match /rewardCodes/{code} {
       allow read: if true;
-      // Solo el admin puede crear códigos
       allow create: if request.auth != null
         && request.auth.token.email == 'ricardotorresgalvez005@gmail.com';
       allow update: if resource.data.usesLeft is number
