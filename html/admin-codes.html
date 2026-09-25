@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin códigos Premium</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#0a0e14;color:#e8f0ff;padding:20px;max-width:480px;margin:0 auto}
+input,button{height:42px;padding:0 12px;margin:6px 0;border-radius:6px;border:1px solid #456;background:#152;color:#fff;width:100%;box-sizing:border-box}
+button{background:#1a4a7a;cursor:pointer;font-weight:700}
+pre{background:#111;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-all}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<h1>Códigos Premium</h1>
+<p>Solo para ti. Contraseña local del panel.</p>
+<div id="gate">
+  <input id="pw" type="password" placeholder="Contraseña admin">
+  <button type="button" id="enter">Entrar</button>
+</div>
+<div id="panel" class="hidden">
+  <p>Genera códigos de un solo uso (Firestore).</p>
+  <input id="count" type="number" value="5" min="1" max="30">
+  <button type="button" id="gen">Generar</button>
+  <pre id="out"></pre>
+  <p style="font-size:12px;opacity:.7">Reglas Firestore: permitir create en premiumCodes solo desde tu cuenta o temporalmente open create para generar.</p>
+</div>
+<script src="../javascript/auth.js"></script>
+<script src="../javascript/premium-codes.js"></script>
+<script>
+var ADMIN_PW = "multisoftdev"; // cámbiala
+document.getElementById("enter").onclick=function(){
+  if(document.getElementById("pw").value===ADMIN_PW){
+    document.getElementById("gate").classList.add("hidden");
+    document.getElementById("panel").classList.remove("hidden");
+  } else alert("No");
+};
+document.getElementById("gen").onclick=function(){
+  var n=Number(document.getElementById("count").value)||5;
+  document.getElementById("out").textContent="Generando…";
+  SpaceStrikeCodes.generate(n,"SS").then(function(res){
+    if(res.ok) document.getElementById("out").textContent=res.codes.join("\n");
+    else document.getElementById("out").textContent="Error: "+res.error+"\n\nCrea códigos manual en Firebase → premiumCodes → documento ID=CODIGO, used:false";
+  });
+};
+</script>
+<div class="version">V2.6.11</div></body>
+</html>

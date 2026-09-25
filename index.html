@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SPACE STRIKE — Multisoft Creations">
+    <meta name="theme-color" content="#030407">
+    <title>SPACE STRIKE</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <div id="space"></div>
+    <div class="ambient"></div>
+
+    <main class="menu">
+        <section class="logo">
+            <div class="logo-main">SPACE STRIKE</div>
+            <div class="logo-sub">DEEP SPACE // COMBAT SYSTEM</div>
+            <div id="pilotLabel" class="pilot-label"></div>
+        </section>
+
+        <div class="separator"></div>
+
+        <div id="noticeBanner" class="notice-banner hidden"></div>
+
+        <section class="buttons">
+            <button id="startGameButton" class="menu-button play-button" type="button"><span class="button-icon">|></span> MODO INFINITO</button>
+            <button id="adventureButton" class="menu-button play-button" type="button"><span class="button-icon">◈</span> MODO AVENTURA</button>
+            <button id="shopButton" class="menu-button" type="button"><span class="button-icon">$</span> TIENDA</button>
+            <button id="googleAuthButton" class="menu-button" type="button" style="border-color:rgba(100,180,255,0.35);"><span class="button-icon">G</span> ENTRAR CON GOOGLE</button>
+            <button id="rewardsButton" class="menu-button" type="button" style="border-color:rgba(140,120,255,0.4);"><span class="button-icon">◇</span> RECOMPENSAS</button>
+            <button id="premiumButton" class="menu-button" type="button" style="border-color:rgba(255,180,60,0.4);"><span class="button-icon">★</span> PREMIUM</button>
+            <button id="leaderboardButton" class="menu-button" type="button"><span class="button-icon">#</span> RANKING</button>
+            <button id="achievementsButton" class="menu-button" type="button"><span class="button-icon">✦</span> LOGROS</button>
+            <button id="howToPlayButton" class="menu-button" type="button"><span class="button-icon">?</span> COMO JUGAR</button>
+            <button id="settingsButton" class="menu-button" type="button"><span class="button-icon">*</span> CONFIGURACIÓN</button>
+        </section>
+
+        <div class="bottom-info">SYSTEM READY // AWAITING PILOT</div>
+        <div class="version">V2.6.11</div>
+    </main>
+
+    <!-- Register modal -->
+    <div id="registerOverlay" class="register-overlay hidden">
+        <div class="register-card">
+            <div class="register-title">REGISTRO DE PILOTO</div>
+            <p class="register-desc">Elige un nombre único (7–12 caracteres). Letras, números, _ y -.</p>
+            <input id="pilotNameInput" type="text" maxlength="12" autocomplete="off" placeholder="Tu nombre de piloto">
+            <div id="registerError" class="register-error"></div>
+            <button id="registerConfirm" class="menu-button play-button" type="button">CONFIRMAR</button>
+        </div>
+    </div>
+
+    <img src="img/marca.png" alt="" class="brand-logo-watermark" width="72" height="72">
+
+    <div id="transition"></div>
+
+    <script src="javascript/auth.js"></script>
+    <script src="javascript/player-profile.js"></script>
+    <script src="javascript/achievements.js"></script>
+    <script src="javascript/rank.js"></script>
+    <script src="javascript/notifications.js"></script>
+    <script src="javascript/index.js" defer></script>
+    <script src="javascript/fullscreen.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#030407">
+    <title>SPACE STRIKE — RANKING</title>
+    <link rel="stylesheet" href="../css/leaderboard.css">
+    <style>
+        .tabs { display:flex; gap:8px; width:min(420px,94vw); margin-bottom:12px; }
+        .tab {
+            flex:1; height:40px; border-radius:6px; cursor:pointer;
+            border:1px solid rgba(90,170,255,0.3);
+            background:rgba(8,16,28,0.8); color:#9cc; font-weight:700; letter-spacing:1px;
+        }
+        .tab.active { border-color:#35aaff; color:#e8f4ff; background:rgba(0,60,120,0.35); }
+        .lb-row {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:10px 12px; margin-bottom:6px;
+            border:1px solid rgba(90,170,255,0.18); border-radius:6px;
+            background:rgba(6,14,26,0.85); font-size:13px;
+        }
+        .lb-rank { width:28px; color:#35aaff; font-weight:800; }
+        .lb-name { flex:1; letter-spacing:1px; }
+        .lb-score { color:#9fd4ff; font-weight:700; font-variant-numeric:tabular-nums; }
+        .lb-wave { font-size:10px; color:rgba(140,180,220,0.55); margin-left:8px; }
+        .status-msg { font-size:12px; color:rgba(160,200,240,0.65); margin:8px 0 12px; text-align:center; }
+        .empty { text-align:center; opacity:0.5; padding:24px; }
+    </style>
+</head>
+<body>
+    <div id="space"></div>
+    <main class="lb" style="position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 14px 40px;">
+        <header class="page-header" style="text-align:center;">
+            <div class="page-title" style="font-size:clamp(26px,6vw,40px);font-weight:900;letter-spacing:6px;">RANKING</div>
+            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V2.6.11</div>
+        </header>
+        <div class="separator" style="width:min(240px,55vw);height:1px;margin:12px 0;background:linear-gradient(90deg,transparent,rgba(0,150,255,0.5),transparent);"></div>
+
+        <div class="tabs">
+            <button type="button" class="tab active" id="tabGlobal">GLOBAL</button>
+            <button type="button" class="tab" id="tabLocal">LOCAL</button>
+        </div>
+        <div id="statusMsg" class="status-msg">Cargando ranking global…</div>
+        <section id="list" style="width:min(420px,94vw);"></section>
+
+        <section class="actions" style="width:min(360px,90vw);margin-top:16px;">
+            <button id="backButton" class="menu-button" type="button" style="width:100%;height:48px;border:1px solid rgba(90,170,255,0.28);border-radius:5px;background:linear-gradient(90deg,rgba(10,25,42,0.75),rgba(8,15,27,0.9));color:#dcecff;font-weight:700;letter-spacing:2px;cursor:pointer;">
+                &lt; VOLVER AL MENÚ
+            </button>
+        </section>
+        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V2.6.11</div>
+    </main>
+    <div id="transition"></div>
+
+    <script src="../javascript/player-profile.js"></script>
+    <script src="../javascript/leaderboard-global.js"></script>
+    <script src="../javascript/fullscreen.js"></script>
+    <script>
+        document.getElementById("backButton").onclick = function () {
+            var t = document.getElementById("transition");
+            if (t) t.classList.add("active");
+            setTimeout(function () { location.href = "../index.html"; }, 400);
+        };
+
+        (function () {
+            var space = document.getElementById("space");
+            if (space) {
+                for (var i = 0; i < 50; i++) {
+                    var s = document.createElement("div");
+                    s.className = "star";
+                    s.style.cssText = "position:absolute;background:#fff;border-radius:50%;width:" + (Math.random()*2+0.4) + "px;height:" + (Math.random()*2+0.4) + "px;left:" + Math.random()*100 + "%;top:" + Math.random()*100 + "%;";
+                    space.appendChild(s);
+                }
+            }
+        })();
+
+        function fmt(n) {
+            return String(Math.floor(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function render(rows) {
+            var list = document.getElementById("list");
+            if (!rows || !rows.length) {
+                list.innerHTML = '<div class="empty">Sin puntuaciones aún</div>';
+                return;
+            }
+            list.innerHTML = rows.map(function (r, i) {
+                return '<div class="lb-row">' +
+                    '<span class="lb-rank">' + String(i + 1).padStart(2, "0") + "</span>" +
+                    '<span class="lb-name">' + (r.name || "———") + "</span>" +
+                    '<span class="lb-score">' + fmt(r.score) + "</span>" +
+                    (r.wave ? '<span class="lb-wave">W' + r.wave + "</span>" : "") +
+                    "</div>";
+            }).join("");
+        }
+
+        function loadLocal() {
+            document.getElementById("statusMsg").textContent = "Ranking de este dispositivo";
+            var rows = [];
+            try {
+                if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.getLeaderboard) {
+                    rows = window.SpaceStrikePlayer.getLeaderboard() || [];
+                } else {
+                    rows = JSON.parse(localStorage.getItem("spaceStrikeLeaderboard") || "[]");
+                }
+            } catch (e) { rows = []; }
+            rows = (rows || []).map(function (r) {
+                return { name: r.name, score: r.score, wave: r.wave || r.level || 1 };
+            }).sort(function (a, b) { return b.score - a.score; }).slice(0, 20);
+            render(rows);
+        }
+
+        function loadGlobal() {
+            var msg = document.getElementById("statusMsg");
+            msg.textContent = "Cargando ranking global…";
+            if (!window.SpaceStrikeGlobalLB) {
+                msg.textContent = "Módulo global no disponible";
+                render([]);
+                return;
+            }
+            window.SpaceStrikeGlobalLB.top(20).then(function (rows) {
+                var err = window.SpaceStrikeGlobalLB.lastError && window.SpaceStrikeGlobalLB.lastError();
+                if (!rows || !rows.length) {
+                    msg.textContent = err
+                        ? ("Error: " + err)
+                        : "Global vacío — juega Infinito y muere para subir score";
+                } else {
+                    msg.textContent = "Top 20 global (" + rows.length + ")";
+                }
+                render(rows);
+            });
+        }
+
+        document.getElementById("tabGlobal").onclick = function () {
+            document.getElementById("tabGlobal").classList.add("active");
+            document.getElementById("tabLocal").classList.remove("active");
+            loadGlobal();
+        };
+        document.getElementById("tabLocal").onclick = function () {
+            document.getElementById("tabLocal").classList.add("active");
+            document.getElementById("tabGlobal").classList.remove("active");
+            loadLocal();
+        };
+
+        loadGlobal();
+    </script>
+</body>
+</html>
