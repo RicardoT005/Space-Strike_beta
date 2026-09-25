@@ -886,6 +886,11 @@ loadShipSprite("nebula", [
     "/img/texturas-especiales/nave-especial.png",
     "/img/ships/nebula.png"
 ]);
+loadShipSprite("overlord", [
+    "../img/bosses/overlord.png",
+    "img/bosses/overlord.png",
+    "/img/bosses/overlord.png"
+]);
 
 const PERF = {
     isMobile:
@@ -2111,13 +2116,13 @@ const enemyTypes = {
 
     boss: {
 
-        width: 96,
+        width: 128,
 
-        height: 72,
+        height: 110,
 
         health: 100,
 
-        speed: 32,
+        speed: 28,
 
         points: 5000,
 
@@ -2459,6 +2464,28 @@ function drawEnemy(enemy) {
         y
     );
 
+    /* BOSS sprite (Overlord) */
+    if (enemy.isBoss || enemy.type === "boss") {
+        var bspr = (typeof shipSprites !== "undefined") ? shipSprites[enemy.spriteId || "overlord"] : null;
+        if (bspr && bspr.ready && bspr.naturalWidth) {
+            var bw = enemy.width;
+            var bh = enemy.height;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = enemy.bossPhase >= 2 ? "#ff3344" : "#3388ff";
+            /* nose toward player (down on screen) — art is nose-down already */
+            ctx.drawImage(bspr, -bw / 2, -bh / 2, bw, bh);
+            /* HP bar */
+            var barW = bw * 0.9;
+            var hpRatio = clamp(enemy.health / Math.max(1, enemy.maxHealth), 0, 1);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "rgba(0,0,0,0.55)";
+            ctx.fillRect(-barW / 2, -bh / 2 - 14, barW, 6);
+            ctx.fillStyle = hpRatio > 0.5 ? "#35aaff" : (hpRatio > 0.25 ? "#ffcc44" : "#ff4466");
+            ctx.fillRect(-barW / 2, -bh / 2 - 14, barW * hpRatio, 6);
+            ctx.restore();
+            return;
+        }
+    }
 
     /*
         Color by enemy type.
@@ -3447,7 +3474,12 @@ function getBossHealth(wave) {
 }
 
 function isBossWave(wave) {
-    return wave >= 10 && wave % 10 === 0;
+    wave = Math.floor(Number(wave) || 0);
+    /* Aventura: jefe cada 10 sectores · Infinito: jefe cada 50 oleadas */
+    if (game.mode === "adventure") {
+        return wave >= 10 && wave % 10 === 0;
+    }
+    return wave >= 50 && wave % 50 === 0;
 }
 
 function setupWave(wave) {
@@ -3501,31 +3533,39 @@ function spawnBossForWave(wave) {
         return;
     }
 
+    loadShipSprite("overlord", [
+        "../img/bosses/overlord.png",
+        "img/bosses/overlord.png",
+        "/img/bosses/overlord.png"
+    ]);
+
     const type = enemyTypes.boss;
     const hp = getBossHealth(wave);
+    const scale = 1 + Math.min(0.35, Math.floor(wave / 50) * 0.12);
 
     enemies.push({
         type: "boss",
         x: canvasWidth / 2,
-        y: -type.height,
-        width: type.width,
-        height: type.height,
+        y: -type.height * scale,
+        width: type.width * scale,
+        height: type.height * scale,
         health: hp,
         maxHealth: hp,
         speed: type.speed * (0.9 + Math.min(0.4, wave * 0.008)),
-        points: 2000 + wave * 80,
+        points: 2500 + wave * 100,
         shoot: true,
-        shootCooldown: 500,
+        shootCooldown: 480,
         wave: 0,
         waveSpeed: 1.1,
         age: 0,
         isBoss: true,
         bossPhase: 1,
-        phaseAnnounced: false
+        phaseAnnounced: false,
+        spriteId: "overlord"
     });
 
     if (systemStatus) {
-        systemStatus.textContent = "⚠ JEFE FASE 1 · OLEADA " + wave;
+        systemStatus.textContent = "⚠ JEFE OVERLORD · OLEADA " + wave;
     }
 }
 
@@ -4628,17 +4668,27 @@ function startNewGame() {
         setupWave(1);
         saveProgress();
     } else {
-        /* Adventure: kill quota from sector */
+        /* Adventure: kill quota from sector · boss every 10 levels */
         const def = getAdventureLevelDef(game.adventureLevel);
-        const kills = def && def.kills
-            ? def.kills
-            : Math.max(12, Math.floor((def && def.target ? def.target : 400) / 45));
-        game.waveKillTarget = kills;
-        game.waveSpawnQuota = kills;
+        const advLv = game.adventureLevel || 1;
         game.waveKills = 0;
         game.waveSpawned = 0;
-        game.bossActive = false;
-        game.targetScore = kills;
+        if (isBossWave(advLv)) {
+            game.waveKillTarget = 1;
+            game.waveSpawnQuota = 1;
+            game.bossActive = true;
+            game.spawnInterval = 99999;
+            game.targetScore = 1;
+            spawnBossForWave(advLv);
+        } else {
+            const kills = def && def.kills
+                ? def.kills
+                : Math.max(12, Math.floor((def && def.target ? def.target : 400) / 45));
+            game.waveKillTarget = kills;
+            game.waveSpawnQuota = kills;
+            game.bossActive = false;
+            game.targetScore = kills;
+        }
         updateWaveProgressUI();
         updateLevelUI();
     }
