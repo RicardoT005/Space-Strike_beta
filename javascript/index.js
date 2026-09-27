@@ -21,6 +21,9 @@ const howToPlayButton =
 const settingsButton =
     document.getElementById("settingsButton");
 
+const suggestButton =
+    document.getElementById("suggestButton");
+
 const adventureButton =
     document.getElementById("adventureButton");
 
@@ -345,6 +348,24 @@ function initializeButtons() {
 
     }
 
+    if (suggestButton) {
+        suggestButton.addEventListener("click", function () {
+            var pilot = "";
+            try {
+                if (window.SpaceStrikePlayer && SpaceStrikePlayer.getName) {
+                    pilot = SpaceStrikePlayer.getName() || "";
+                }
+            } catch (e) {}
+            var msg =
+                "SUGERENCIA SPACE STRIKE\n" +
+                "Piloto: " + (pilot || "sin nombre") + "\n" +
+                "Versión: V2.6.17\n\n" +
+                "Escribe aquí tu idea o reporte:";
+            window.open("https://wa.me/525562260337?text=" + encodeURIComponent(msg), "_blank");
+        });
+    }
+
+
 
     if (adventureButton) {
 
@@ -499,25 +520,68 @@ function refreshPilotUI() {
     pilotLabel.textContent = name ? ("PILOTO // " + name) : "SIN REGISTRO";
 }
 
-function ensurePilotRegistered(callback) {
-    const P = window.SpaceStrikePlayer;
-    if (!P) {
-        if (callback) callback();
-        return;
-    }
-    if (P.getName()) {
-        if (callback) callback();
-        return;
-    }
-    if (registerOverlay) {
-        registerOverlay.classList.remove("hidden");
-        if (pilotNameInput) {
-            pilotNameInput.value = "";
-            pilotNameInput.focus();
+function isGoogleLoggedIn() {
+    try {
+        if (window.SpaceStrikeAuth && SpaceStrikeAuth.user) {
+            var u = SpaceStrikeAuth.user();
+            if (u && (u.uid || u.email)) return true;
         }
-        if (registerError) registerError.textContent = "";
-        window.__afterRegister = callback;
+        if (window.firebase && firebase.auth && firebase.auth().currentUser) {
+            return true;
+        }
+    } catch (e) {}
+    return false;
+}
+
+function ensureGoogleAuth(callback) {
+    if (isGoogleLoggedIn()) {
+        if (callback) callback();
+        return;
     }
+    if (!window.SpaceStrikeAuth || !SpaceStrikeAuth.signInGoogle) {
+        alert("Debes iniciar sesión con Google para guardar tu progreso.\nEl módulo de auth no cargó; recarga la página.");
+        return;
+    }
+    if (googleAuthButton) googleAuthButton.disabled = true;
+    SpaceStrikeAuth.signInGoogle().then(function (user) {
+        var u = user || (SpaceStrikeAuth.user && SpaceStrikeAuth.user());
+        if (googleAuthButton) {
+            var label = u && u.email ? u.email.split("@")[0].toUpperCase() : "GOOGLE";
+            googleAuthButton.textContent = "☁ " + label;
+            googleAuthButton.disabled = false;
+        }
+        try { refreshPilotUI(); } catch (e1) {}
+        return SpaceStrikeAuth.pull().catch(function () {}).then(function () {
+            if (callback) callback();
+        });
+    }).catch(function (err) {
+        if (googleAuthButton) googleAuthButton.disabled = false;
+        alert("Debes iniciar sesión con Google para jugar y guardar datos.\n" + (err && err.message ? err.message : err));
+    });
+}
+
+function ensurePilotRegistered(callback) {
+    /* 1) Google obligatorio para guardar progreso */
+    ensureGoogleAuth(function () {
+        const P = window.SpaceStrikePlayer;
+        if (!P) {
+            if (callback) callback();
+            return;
+        }
+        if (P.getName()) {
+            if (callback) callback();
+            return;
+        }
+        if (registerOverlay) {
+            registerOverlay.classList.remove("hidden");
+            if (pilotNameInput) {
+                pilotNameInput.value = "";
+                pilotNameInput.focus();
+            }
+            if (registerError) registerError.textContent = "";
+            window.__afterRegister = callback;
+        }
+    });
 }
 
 function bindRegister() {

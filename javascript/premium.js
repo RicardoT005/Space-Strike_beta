@@ -8,7 +8,7 @@ const MP_LINK = "https://mpago.la/1D6UECL";
 /** App ntfy → suscríbete al topic */
 const NTFY_TOPIC = "spacestrike-premium-ricardo";
 const OWNER_EMAIL = "ricardotorresgalvez005@gmail.com";
-const OWNER_WHATSAPP = "525624944382";
+const OWNER_WHATSAPP = "525562260337";
 const PREMIUM_CODE_KEY = "spaceStrikePremiumCode";
 
 /** Official redeem codes (change/rotate in production) */

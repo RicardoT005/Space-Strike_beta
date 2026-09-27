@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v2617",
+        title: "PARCHE 2.6.17",
+        body: "Fix infinito: enemigos volvían a salir tras oleada 10. Sugerencias por WhatsApp. Login Google obligatorio para guardar progreso."
+    },
+    {
         id: "v2616",
         title: "PARCHE 2.6.16",
         body: "Habilidades EMP/OVER/NOVA se compran en la Tienda y se activan tocando los botones. Tras perder una vida puedes moverte. Jefe Overlord (aventura x10 / infinito x50). Premium admin y badge dorado."

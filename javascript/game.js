@@ -3110,6 +3110,10 @@ function destroyEnemy(
 
         if (enemy.isBoss || enemy.type === "boss") {
             game.bossesKilled = (game.bossesKilled || 0) + 1;
+            /* Liberar spawn si no quedan jefes en pantalla */
+            if (!enemies.some(function (e, i) { return i !== index && (e.isBoss || e.type === "boss"); })) {
+                game.bossActive = false;
+            }
         }
 
         game.kills = (game.kills || 0) + 1;
@@ -3455,8 +3459,9 @@ function getWaveKillTarget(wave) {
 
 /** How many to spawn this wave (same as kill target for normal waves) */
 function getWaveSpawnQuota(wave) {
-    if (wave % 10 === 0) {
-        return 1; /* boss only */
+    /* Solo 1 si es oleada de jefe real (aventura x10 / infinito x50) */
+    if (isBossWave(wave)) {
+        return 1;
     }
     return getWaveKillTarget(wave);
 }
@@ -3499,8 +3504,13 @@ function setupWave(wave) {
         game.spawnInterval = 99999;
         spawnBossForWave(wave);
     } else {
-        game.waveKillTarget = getWaveKillTarget(wave);
-        game.waveSpawnQuota = getWaveSpawnQuota(wave);
+        game.bossActive = false;
+        game.waveKillTarget = Math.max(1, getWaveKillTarget(wave));
+        game.waveSpawnQuota = Math.max(1, getWaveSpawnQuota(wave));
+        /* Si por bug anterior quota < kills, igualar */
+        if (game.waveSpawnQuota < game.waveKillTarget) {
+            game.waveSpawnQuota = game.waveKillTarget;
+        }
         game.spawnInterval = getSpawnIntervalForLevel(wave);
         game.spawnTimer = 0;
     }
