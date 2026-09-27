@@ -161,6 +161,7 @@ if (typeof window !== "undefined") {
         register: registerPlayer,
         getName: getPlayerName,
         loadLeaderboard: loadLeaderboard,
+        getLeaderboard: loadLeaderboard,
         submitScore: submitScore
     };
 }

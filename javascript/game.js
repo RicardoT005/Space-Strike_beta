@@ -5085,16 +5085,28 @@ function endGame() {
             pilotName = String(pilotName || "").trim();
 
             if (window.SpaceStrikeGlobalLB && typeof window.SpaceStrikeGlobalLB.submit === "function") {
-                window.SpaceStrikeGlobalLB.submit(pilotName, game.score, game.level).then(function (res) {
+                var scoreToSend = Math.max(
+                    Math.floor(game.score || 0),
+                    Math.floor(game.highScore || 0)
+                );
+                try {
+                    var hs2 = Number(localStorage.getItem("spaceStrikeHighScore") || 0);
+                    if (hs2 > scoreToSend) scoreToSend = Math.floor(hs2);
+                } catch (eHs) {}
+                window.SpaceStrikeGlobalLB.submit(pilotName, scoreToSend, game.level).then(function (res) {
                     if (systemStatus) {
                         if (res && res.ok) {
-                            systemStatus.textContent = "RANKING GLOBAL ✓";
-                        if (window.SpaceStrikeAuth) window.SpaceStrikeAuth.push();
+                            systemStatus.textContent = "RANKING GLOBAL ✓ (" + scoreToSend + ")";
+                            if (window.SpaceStrikeAuth) window.SpaceStrikeAuth.push();
                         } else {
                             systemStatus.textContent = "RANKING: " + ((res && res.error) || (res && res.reason) || "error");
                         }
                     }
                     console.log("[SpaceStrike] global submit", res);
+                    /* Backup: sync any higher local best */
+                    if (window.SpaceStrikeGlobalLB.syncLocalBest) {
+                        window.SpaceStrikeGlobalLB.syncLocalBest().catch(function () {});
+                    }
                 });
             } else {
                 console.warn("[SpaceStrike] SpaceStrikeGlobalLB no cargado");

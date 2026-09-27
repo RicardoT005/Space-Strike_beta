@@ -65,7 +65,7 @@
     }
 
     function resolveName(name) {
-        name = String(name || "").trim();
+        name = String(name || "").trim().replace(/\s+/g, "");
         if (name.length >= 7 && name.length <= 12) return name;
         try {
             if (window.SpaceStrikePlayer && typeof window.SpaceStrikePlayer.getName === "function") {
@@ -254,10 +254,72 @@
         });
     }
 
+
+    /**
+     * Push the best local infinite score for the current pilot to global.
+     * Fixes cases where local high score never reached Firebase (crash, offline, old version).
+     */
+    function syncLocalBest() {
+        var name = resolveName("");
+        if (name.length < 7 || name.length > 12) {
+            lastError = "Registra un piloto (7-12 caracteres) en el menú";
+            return Promise.resolve({ ok: false, reason: "name", error: lastError });
+        }
+
+        var best = 0;
+        var bestWave = 1;
+
+        try {
+            var hs = Number(localStorage.getItem("spaceStrikeHighScore") || 0);
+            if (Number.isFinite(hs) && hs > best) best = Math.floor(hs);
+        } catch (e0) {}
+
+        try {
+            if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.loadProfile) {
+                var pr = window.SpaceStrikePlayer.loadProfile();
+                if (pr) {
+                    if (pr.bestInfinite && pr.bestInfinite > best) best = Math.floor(pr.bestInfinite);
+                    if (pr.bestWave) bestWave = Math.max(bestWave, Math.floor(pr.bestWave));
+                }
+            }
+        } catch (e1) {}
+
+        try {
+            var board = [];
+            if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.loadLeaderboard) {
+                board = window.SpaceStrikePlayer.loadLeaderboard() || [];
+            } else {
+                board = JSON.parse(localStorage.getItem("spaceStrikeLeaderboard") || "[]");
+            }
+            var key = name.toLowerCase();
+            (board || []).forEach(function (row) {
+                if (!row) return;
+                if (String(row.name || "").toLowerCase() !== key) return;
+                var sc = Math.floor(Number(row.score) || 0);
+                if (sc > best) best = sc;
+                var w = Math.floor(Number(row.wave || row.level) || 0);
+                if (w > bestWave) bestWave = w;
+            });
+        } catch (e2) {}
+
+        if (best <= 0) {
+            lastError = "No hay score local para subir";
+            return Promise.resolve({ ok: false, reason: "score", error: lastError, score: 0 });
+        }
+
+        return submitScore(name, best, bestWave).then(function (res) {
+            if (res && res.ok) {
+                return Object.assign({ score: best, wave: bestWave, name: name }, res);
+            }
+            return res || { ok: false, reason: "error" };
+        });
+    }
+
     window.SpaceStrikeGlobalLB = {
         init: init,
         submit: submitScore,
         top: fetchTop,
+        syncLocalBest: syncLocalBest,
         markPremium: markPremium,
         nameToId: nameToId,
         isReady: function () { return ready; },

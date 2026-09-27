@@ -46,7 +46,7 @@
     <main class="lb" style="position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 14px 40px;">
         <header class="page-header" style="text-align:center;">
             <div class="page-title" style="font-size:clamp(26px,6vw,40px);font-weight:900;letter-spacing:6px;">RANKING</div>
-            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V2.6.17</div>
+            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V2.6.18</div>
         </header>
         <div class="separator" style="width:min(240px,55vw);height:1px;margin:12px 0;background:linear-gradient(90deg,transparent,rgba(0,150,255,0.5),transparent);"></div>
 
@@ -54,6 +54,7 @@
             <button type="button" class="tab active" id="tabGlobal">GLOBAL</button>
             <button type="button" class="tab" id="tabLocal">LOCAL</button>
         </div>
+        <button type="button" id="syncMyScore" class="tab" style="width:min(420px,94vw);margin-bottom:10px;height:40px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,200,80,0.4);background:rgba(40,30,10,0.85);color:#ffe6a8;font-weight:700;letter-spacing:1px;">☁ SUBIR MI RÉCORD LOCAL</button>
         <div id="statusMsg" class="status-msg">Cargando ranking global…</div>
         <section id="list" style="width:min(420px,94vw);"></section>
 
@@ -62,7 +63,7 @@
                 &lt; VOLVER AL MENÚ
             </button>
         </section>
-        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V2.6.17</div>
+        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V2.6.18</div>
     </main>
     <div id="transition"></div>
 
@@ -136,17 +137,60 @@
                 render([]);
                 return;
             }
-            window.SpaceStrikeGlobalLB.top(20).then(function (rows) {
-                var err = window.SpaceStrikeGlobalLB.lastError && window.SpaceStrikeGlobalLB.lastError();
-                if (!rows || !rows.length) {
-                    msg.textContent = err
-                        ? ("Error: " + err)
-                        : "Global vacío — juega Infinito y muere para subir score";
-                } else {
-                    msg.textContent = "Top 20 global (" + rows.length + ")";
+            function fetchAndShow(extra) {
+                window.SpaceStrikeGlobalLB.top(30).then(function (rows) {
+                    var err = window.SpaceStrikeGlobalLB.lastError && window.SpaceStrikeGlobalLB.lastError();
+                    if (!rows || !rows.length) {
+                        msg.textContent = err
+                            ? ("Error: " + err)
+                            : "Global vacío — toca SUBIR MI RÉCORD o juega Infinito";
+                    } else {
+                        msg.textContent = "Top global (" + rows.length + ")" + (extra ? " · " + extra : "");
+                    }
+                    render(rows);
+                });
+            }
+            /* Auto: intenta subir el mejor score local del piloto actual */
+            if (window.SpaceStrikeGlobalLB.syncLocalBest) {
+                window.SpaceStrikeGlobalLB.syncLocalBest().then(function (res) {
+                    var note = "";
+                    if (res && res.ok) {
+                        if (res.action === "created") note = "Récord subido (nuevo)";
+                        else if (res.action === "updated") note = "Récord actualizado";
+                        else if (res.action === "kept") note = "Ya estaba en global";
+                        else note = "Sincronizado";
+                    } else if (res && res.reason === "name") {
+                        note = "Registra piloto en el menú";
+                    } else if (res && res.reason === "score") {
+                        note = "";
+                    } else if (res && (res.error || res.reason)) {
+                        note = String(res.error || res.reason);
+                    }
+                    fetchAndShow(note);
+                }).catch(function () { fetchAndShow(""); });
+            } else {
+                fetchAndShow("");
+            }
+        }
+
+        var syncBtn = document.getElementById("syncMyScore");
+        if (syncBtn) {
+            syncBtn.onclick = function () {
+                var msg = document.getElementById("statusMsg");
+                msg.textContent = "Subiendo récord local…";
+                if (!window.SpaceStrikeGlobalLB || !window.SpaceStrikeGlobalLB.syncLocalBest) {
+                    msg.textContent = "Módulo no disponible";
+                    return;
                 }
-                render(rows);
-            });
+                window.SpaceStrikeGlobalLB.syncLocalBest().then(function (res) {
+                    if (res && res.ok) {
+                        msg.textContent = "OK · score " + (res.score || "") + " · " + (res.action || "listo");
+                        loadGlobal();
+                    } else {
+                        msg.textContent = "No se pudo: " + ((res && (res.error || res.reason)) || "error");
+                    }
+                });
+            };
         }
 
         document.getElementById("tabGlobal").onclick = function () {

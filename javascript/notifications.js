@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v2618",
+        title: "PARCHE 2.6.18",
+        body: "Ranking global: sube automáticamente tu récord local. Botón SUBIR MI RÉCORD en Ranking si no apareces."
+    },
+    {
         id: "v2617",
         title: "PARCHE 2.6.17",
         body: "Fix infinito: enemigos volvían a salir tras oleada 10. Sugerencias por WhatsApp. Login Google obligatorio para guardar progreso."
