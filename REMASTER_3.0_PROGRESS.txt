@@ -1,0 +1,25 @@
+SPACE STRIKE — Remaster 3.0 progress
+=====================================
+
+BACKUP STABLE: SPACE_STRIKE_v2.9.1-STABLE.zip  (congelada)
+
+v2.9.2 — SAVE / ARCHITECTURE (current)
+--------------------------------------
+Added (non-breaking facades):
+  javascript/core/game-state.js   → SpaceStrikeGameState
+  javascript/core/player-data.js  → SpaceStrikePlayerData
+  javascript/core/save-manager.js → SpaceStrikeSaveManager
+
+Rules followed:
+  - No wipe of localStorage keys
+  - Wraps existing ships/upgrades/premium/coins
+  - game.js still owns gameplay (6843 lines) — split comes later
+  - Migration path version: 1
+
+NEXT (v2.9.3+):
+  - ShopManager facade over shop.js flow
+  - Extract particles / audio stubs
+  - Progressive cut of enemies/bullets from game.js
+  - Visual palette tokens in CSS
+
+DO NOT skip testing after each step.

@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v292",
+        title: "REMASTER 3.0 — FASE ARQUITECTURA",
+        body: "v2.9.2: PlayerData + SaveManager + GameState. Base estable v2.9.1-STABLE. Sin cambios de gameplay; prepara el remaster."
+    },
+    {
         id: "v290",
         title: "VERSIÓN 2.9.0 — MISILES",
         body: "Destructor lanza misiles teledirigidos. Tienda: cantidad, ojiva y radio. En Infinito, oleadas 9/19/29… elige mejora de misil."
