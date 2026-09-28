@@ -862,10 +862,13 @@ const particles = [];
 const shipSprites = {};
 function loadShipSprite(id, srcList) {
     if (!id) return;
-    if (shipSprites[id] && (shipSprites[id].ready || shipSprites[id]._trying)) return;
+    /* Allow retry if previous attempt failed */
+    if (shipSprites[id] && shipSprites[id].ready) return;
+    if (shipSprites[id] && shipSprites[id]._trying) return;
     var paths = Array.isArray(srcList) ? srcList : [srcList];
     var img = new Image();
     img.ready = false;
+    img.failed = false;
     img._trying = true;
     img._paths = paths.slice();
     img._i = 0;
@@ -879,14 +882,47 @@ function loadShipSprite(id, srcList) {
         var p = img._paths[img._i++];
         img.onload = function () {
             img.ready = true;
+            img.failed = false;
             img._trying = false;
             console.log("[ShipSprite] loaded", id, p);
         };
-        img.onerror = function () { tryNext(); };
+        img.onerror = function () {
+            console.warn("[ShipSprite] miss", id, p);
+            tryNext();
+        };
         img.src = p;
     }
     shipSprites[id] = img;
     tryNext();
+}
+
+function ensureVt03Sprites() {
+    loadShipSprite("vt03", [
+        "../img/ships/vt03/phase1.png",
+        "../img/ships/vt03.png",
+        "../img/texturas-especiales/vt03-phase1.png",
+        "img/ships/vt03/phase1.png",
+        "img/ships/vt03.png",
+        "img/texturas-especiales/vt03-phase1.png",
+        "/img/ships/vt03/phase1.png",
+        "/img/ships/vt03.png"
+    ]);
+    loadShipSprite("vt03-core", [
+        "../img/ships/vt03/core.png",
+        "../img/texturas-especiales/vt03-core.png",
+        "img/ships/vt03/core.png",
+        "/img/ships/vt03/core.png"
+    ]);
+    loadShipSprite("vt03-wing-l", [
+        "../img/ships/vt03/wing-l.png",
+        "img/ships/vt03/wing-l.png",
+        "/img/ships/vt03/wing-l.png"
+    ]);
+    loadShipSprite("vt03-wing-r", [
+        "../img/ships/vt03/wing-r.png",
+        "img/ships/vt03/wing-r.png",
+        "/img/ships/vt03/wing-r.png"
+    ]);
 }
 /* Try several relative paths (localhost / netlify / nested) */
 loadShipSprite("destroyer", [
@@ -919,6 +955,31 @@ loadShipSprite("rpd-drone", [
     "img/texturas-especiales/rpd-drone.png",
     "img/ships/rpd-drone.png"
 ]);
+/* VT-03 premium (phase1 + parts) */
+if (typeof ensureVt03Sprites === "function") {
+    ensureVt03Sprites();
+} else {
+    loadShipSprite("vt03", [
+        "../img/ships/vt03/phase1.png",
+        "../img/ships/vt03.png",
+        "img/ships/vt03/phase1.png",
+        "img/ships/vt03.png",
+        "/img/ships/vt03/phase1.png"
+    ]);
+    loadShipSprite("vt03-core", [
+        "../img/ships/vt03/core.png",
+        "img/ships/vt03/core.png",
+        "/img/ships/vt03/core.png"
+    ]);
+    loadShipSprite("vt03-wing-l", [
+        "../img/ships/vt03/wing-l.png",
+        "img/ships/vt03/wing-l.png"
+    ]);
+    loadShipSprite("vt03-wing-r", [
+        "../img/ships/vt03/wing-r.png",
+        "img/ships/vt03/wing-r.png"
+    ]);
+}
 
 const PERF = {
     isMobile:
@@ -1246,6 +1307,19 @@ function applyOwnedUpgrades() {
                 player.rpdPentaCdMax = 18;
                 player.rpdHealOrb = true;
             }
+            if (eq === "vt03") {
+                player.specialShip = true;
+                player.vt03Ship = true;
+                player.vt03Phase = 1;
+                player.shipColor = "#9ca3af";
+                player.shipAccent = "#fbbf24";
+                player.baseSpeed = 400;
+                player.baseFireRate = 145;
+                player.shipMaxHealth = 5;
+                player.specialStats = { vt03Ship: true, doubleCannon: true, bulletColor: "#fbbf24", laserChance: 0.05 };
+                player.specialBulletColor = "#fbbf24";
+                player.doubleCannon = true;
+            }
         } catch (e) {}
         player.fireRate = player.baseFireRate || 165;
         player.speed = player.baseSpeed || 390;
@@ -1262,26 +1336,24 @@ function applyOwnedUpgrades() {
         if (typeof loadShipSprite === "function") {
             loadShipSprite("destroyer", [
                 "../img/ships/t-wind.png",
-                "img/ships/t-wind.png"
+                "img/ships/t-wind.png",
+                "/img/ships/t-wind.png"
             ]);
         }
     }
     if (player.shipId === "nebula") {
         player.specialShip = true;
+        player.nebulaShip = true;
         if (!player.specialStats) {
-            player.specialStats = { doubleCannon: true, agility: true, shieldMax: 3, shieldRegenSec: 60, bulletColor: "#ff3b4a", laserChance: 0.1 };
+            player.specialStats = { doubleCannon: true, agility: true, shieldMax: 3, shieldRegenSec: 60, bulletColor: "#ff3b4a", laserChance: 0.1, nebulaSkills: true };
         }
         if (typeof loadShipSprite === "function") {
-            loadShipSprite("destroyer", [
-    "../img/ships/t-wind.png",
-    "img/ships/t-wind.png",
-    "/img/ships/t-wind.png"
-]);
-loadShipSprite("nebula", [
+            loadShipSprite("nebula", [
                 "../img/texturas-especiales/nave-especial.png",
                 "../img/ships/nebula.png",
                 "img/texturas-especiales/nave-especial.png",
-                "img/ships/nebula.png"
+                "img/ships/nebula.png",
+                "/img/ships/nebula.png"
             ]);
         }
     }
@@ -1294,6 +1366,36 @@ loadShipSprite("nebula", [
                 "../img/ships/rpd.png",
                 "img/texturas-especiales/rpd-leon.png",
                 "img/ships/rpd.png"
+            ]);
+        }
+    }
+    if (player.shipId === "vt03" || (player.specialStats && player.specialStats.vt03Ship)) {
+        player.specialShip = true;
+        player.vt03Ship = true;
+        player.vt03Phase = player.vt03Phase || 1;
+        player.specialBulletColor = "#fbbf24";
+        player.doubleCannon = true;
+        if (typeof ensureVt03Sprites === "function") {
+            ensureVt03Sprites();
+        } else if (typeof loadShipSprite === "function") {
+            loadShipSprite("vt03", [
+                "../img/ships/vt03/phase1.png",
+                "../img/ships/vt03.png",
+                "img/ships/vt03/phase1.png",
+                "img/ships/vt03.png",
+                "/img/ships/vt03/phase1.png"
+            ]);
+            loadShipSprite("vt03-core", [
+                "../img/ships/vt03/core.png",
+                "img/ships/vt03/core.png"
+            ]);
+            loadShipSprite("vt03-wing-l", [
+                "../img/ships/vt03/wing-l.png",
+                "img/ships/vt03/wing-l.png"
+            ]);
+            loadShipSprite("vt03-wing-r", [
+                "../img/ships/vt03/wing-r.png",
+                "img/ships/vt03/wing-r.png"
             ]);
         }
     }
@@ -1765,8 +1867,17 @@ function drawPlayer() {
 
     /* Textured ships (NEBULA + futuras) */
     var sidTex = player.shipId || "interceptor";
-    if (player.vt03Ship) sidTex = "vt03";
+    if (player.vt03Ship || player.shipId === "vt03") {
+        sidTex = "vt03";
+        player.vt03Ship = true;
+        if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
+    }
     var spr = (typeof shipSprites !== "undefined") ? shipSprites[sidTex] : null;
+    /* If still loading, keep trying — avoid permanent geometric fallback */
+    if (sidTex === "vt03" && (!spr || !spr.ready)) {
+        if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
+        spr = shipSprites["vt03"] || null;
+    }
     /* VT-03 phase 2: core only (wings drawn separately world-space) */
     if (player.vt03Ship && player.vt03Phase === 2) {
         var core = shipSprites["vt03-core"];
