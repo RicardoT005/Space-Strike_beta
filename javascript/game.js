@@ -763,6 +763,11 @@ const player = {
 
     invulnerable: 0,
     canShoot: true,
+    rpdImmunityCd: 0,
+    rpdPentaCd: 0,
+    rpdPentaActive: 0,
+    rpdHealUsed: false,
+    rpdShip: false,
 
     visible: true,
 
@@ -891,6 +896,12 @@ loadShipSprite("overlord", [
     "../img/bosses/overlord.png",
     "img/bosses/overlord.png",
     "/img/bosses/overlord.png"
+]);
+loadShipSprite("rpd", [
+    "../img/texturas-especiales/rpd-leon.png",
+    "../img/ships/rpd.png",
+    "img/texturas-especiales/rpd-leon.png",
+    "img/ships/rpd.png"
 ]);
 
 const PERF = {
@@ -1204,6 +1215,21 @@ function applyOwnedUpgrades() {
                 player.shipMaxHealth = 3;
                 player.specialStats = { doubleCannon: true, agility: true, shieldMax: 3, shieldRegenSec: 60, bulletColor: "#ff3b4a", laserChance: 0.1 };
             }
+            if (eq === "rpd") {
+                player.specialShip = true;
+                player.rpdShip = true;
+                player.shipColor = "#3b82f6";
+                player.shipAccent = "#fbbf24";
+                player.baseSpeed = 450;
+                player.baseFireRate = 150;
+                player.shipMaxHealth = 4;
+                player.specialStats = { rpdShip: true, agility: true, bulletColor: "#5eb0ff", immunitySec: 3, immunityCd: 16, pentaSec: 4, pentaCd: 18, healOrbOnce: true };
+                player.rpdImmunitySec = 3;
+                player.rpdImmunityCdMax = 16;
+                player.rpdPentaSec = 4;
+                player.rpdPentaCdMax = 18;
+                player.rpdHealOrb = true;
+            }
         } catch (e) {}
         player.fireRate = player.baseFireRate || 165;
         player.speed = player.baseSpeed || 390;
@@ -1216,7 +1242,7 @@ function applyOwnedUpgrades() {
             player.shipId = localStorage.getItem("spaceStrikeEquippedShip") || player.shipId || "interceptor";
         }
     } catch (e2) {}
-    if (player.shipId === "nebula" || player.specialShip) {
+    if (player.shipId === "nebula") {
         player.specialShip = true;
         if (!player.specialStats) {
             player.specialStats = { doubleCannon: true, agility: true, shieldMax: 3, shieldRegenSec: 60, bulletColor: "#ff3b4a", laserChance: 0.1 };
@@ -1227,6 +1253,18 @@ function applyOwnedUpgrades() {
                 "../img/ships/nebula.png",
                 "img/texturas-especiales/nave-especial.png",
                 "img/ships/nebula.png"
+            ]);
+        }
+    }
+    if (player.shipId === "rpd" || (player.specialStats && player.specialStats.rpdShip)) {
+        player.specialShip = true;
+        player.rpdShip = true;
+        if (typeof loadShipSprite === "function") {
+            loadShipSprite("rpd", [
+                "../img/texturas-especiales/rpd-leon.png",
+                "../img/ships/rpd.png",
+                "img/texturas-especiales/rpd-leon.png",
+                "img/ships/rpd.png"
             ]);
         }
     }
@@ -1366,6 +1404,11 @@ function updatePlayer(deltaTime) {
         }
 
     }
+
+    /* R.P.D. LEON cooldowns / penta window */
+    if (player.rpdImmunityCd > 0) player.rpdImmunityCd = Math.max(0, player.rpdImmunityCd - deltaTime);
+    if (player.rpdPentaCd > 0) player.rpdPentaCd = Math.max(0, player.rpdPentaCd - deltaTime);
+    if (player.rpdPentaActive > 0) player.rpdPentaActive = Math.max(0, player.rpdPentaActive - deltaTime);
 
 
     if (player.canControl && player.visible) {
@@ -1623,6 +1666,10 @@ function drawPlayer() {
     if (spr && spr.ready) {
         var sw = player.width * 1.55;
         var sh = player.height * 1.75;
+        if (sidTex === "rpd") {
+            sw = player.width * 1.7;
+            sh = player.height * 2.15;
+        }
         ctx.drawImage(spr, -sw / 2, -sh / 2, sw, sh);
         if (player.specialShield > 0) {
             ctx.strokeStyle = "rgba(120,180,255," + (0.25 + (player.specialShield || 0) * 0.15) + ")";
@@ -1894,6 +1941,7 @@ function attemptPlayerFire() {
     const useMulti = player.multiShot === true;
 
     const isLaser = player.specialShip && Math.random() < (player.specialLaserChance || 0);
+    const rpdPenta = player.rpdShip && player.rpdPentaActive > 0;
     const bColor = player.specialBulletColor || null;
 
     function pushShot(ox, vx, laser) {
@@ -1910,11 +1958,19 @@ function attemptPlayerFire() {
         });
     }
 
-    /* Nave especial: siempre doble cañón en alas */
-    const forceDouble = player.specialShip === true;
+    /* Nebula: doble cañón fijo. R.P.D.: penta si activo */
+    const forceDouble = !!(player.specialStats && player.specialStats.doubleCannon);
     const doubleOn = useDouble || forceDouble;
 
-    if (doubleOn && useMulti) {
+    if (rpdPenta) {
+        /* 5 direcciones (abanico amplio hacia arriba) */
+        pushShot(0, 0, false);
+        pushShot(-10, -110, false);
+        pushShot(10, 110, false);
+        pushShot(-18, -200, false);
+        pushShot(18, 200, false);
+        createMuzzleParticles(player.x, player.y - 27);
+    } else if (doubleOn && useMulti) {
         pushShot(-14, -70, isLaser);
         pushShot(-6, -20, isLaser);
         pushShot(6, 20, isLaser);
@@ -4671,6 +4727,10 @@ function startNewGame() {
 
     game.levelScore = 0;
     game.bossesKilled = 0;
+    player.rpdHealUsed = false;
+    player.rpdPentaActive = 0;
+    player.rpdImmunityCd = 0;
+    player.rpdPentaCd = 0;
     game.shieldRegenTimer = 0;
     resetMissionStats();
     if (typeof asteroids !== "undefined") asteroids.length = 0;
@@ -4912,8 +4972,65 @@ function updateRandomEvents(dt) {
     });
 }
 
+function activateRpdSkill(slot) {
+    /* slot: emp=immunity, overdrive=penta, nova=heal orb */
+    if (!player.rpdShip || !game.running || game.paused || game.gameOver) return false;
+    if (slot === "emp") {
+        if (player.rpdImmunityCd > 0) return false;
+        player.invulnerable = Math.max(player.invulnerable, player.rpdImmunitySec || 3);
+        player.rpdImmunityCd = player.rpdImmunityCdMax || 16;
+        if (systemStatus) systemStatus.textContent = "R.P.D. INMUNIDAD 3s";
+        playSound("level");
+        triggerVibration(25);
+        return true;
+    }
+    if (slot === "overdrive") {
+        if (player.rpdPentaCd > 0) return false;
+        player.rpdPentaActive = player.rpdPentaSec || 4;
+        player.rpdPentaCd = player.rpdPentaCdMax || 18;
+        if (systemStatus) systemStatus.textContent = "R.P.D. RÁFAGA 5 VÍAS";
+        playSound("level");
+        triggerVibration(25);
+        return true;
+    }
+    if (slot === "nova") {
+        if (player.rpdHealUsed || !player.rpdHealOrb) {
+            if (systemStatus) systemStatus.textContent = "Orbe médico ya usado";
+            return false;
+        }
+        player.rpdHealUsed = true;
+        player.health = player.maxHealth;
+        player.canControl = true;
+        player.visible = true;
+        player.canShoot = true;
+        /* visual orbs */
+        try {
+            ["#fbbf24", "#4ade80", "#f87171"].forEach(function (c, i) {
+                createParticle(player.x + (i - 1) * 18, player.y, {
+                    vx: (i - 1) * 40, vy: -60, life: 0.8, size: 5, color: c
+                });
+            });
+        } catch (eOrb) {}
+        updateLivesUI();
+        if (systemStatus) systemStatus.textContent = "ORBE MÉDICO · VIDAS AL MÁXIMO";
+        playSound("level");
+        triggerVibration([30, 20, 30]);
+        return true;
+    }
+    return false;
+}
+
 function activateAbility(id) {
-    if (!window.SpaceStrikeAbilities || !game.running || game.paused || game.gameOver) return;
+    if (!game.running || game.paused || game.gameOver) return;
+    /* R.P.D. ship overrides ability slots with exclusive skills */
+    if (player.rpdShip) {
+        if (activateRpdSkill(id)) {
+            updateAbilityUI();
+            return;
+        }
+        return;
+    }
+    if (!window.SpaceStrikeAbilities) return;
     if (window.SpaceStrikeAbilities.owns && !window.SpaceStrikeAbilities.owns(id)) {
         if (systemStatus) systemStatus.textContent = "Compra la habilidad en la TIENDA";
         return;
@@ -4934,11 +5051,48 @@ function activateAbility(id) {
 }
 
 function updateAbilityUI() {
-    if (!window.SpaceStrikeAbilities) return;
-    const st = window.SpaceStrikeAbilities.ui();
+    const labels = {
+        emp: { name: "EMP", key: "1" },
+        overdrive: { name: "OVER", key: "2" },
+        nova: { name: "NOVA", key: "3" }
+    };
+    if (player.rpdShip) {
+        labels.emp = { name: "INMU", key: "1" };
+        labels.overdrive = { name: "PENTA", key: "2" };
+        labels.nova = { name: "CURA", key: "3" };
+    }
     ["emp", "overdrive", "nova"].forEach(function (id) {
         const btn = document.getElementById("ability-" + id);
         if (!btn) return;
+        const nameEl = btn.querySelector(".ability-name");
+        if (nameEl && labels[id]) nameEl.textContent = labels[id].name;
+
+        if (player.rpdShip) {
+            btn.classList.remove("locked");
+            btn.style.opacity = "";
+            var cd = 0;
+            var ready = true;
+            if (id === "emp") { cd = player.rpdImmunityCd || 0; ready = cd <= 0; }
+            if (id === "overdrive") { cd = player.rpdPentaCd || 0; ready = cd <= 0; }
+            if (id === "nova") {
+                ready = !player.rpdHealUsed && player.rpdHealOrb;
+                cd = 0;
+            }
+            btn.title = id === "emp" ? "Inmunidad 3s"
+                : id === "overdrive" ? "Ráfaga 5 direcciones ~4s"
+                : "Orbe médico (1 uso) — cura todas las vidas";
+            btn.classList.toggle("ready", ready);
+            btn.classList.toggle("cooling", !ready && id !== "nova");
+            const cdEl = btn.querySelector(".ability-cd");
+            if (cdEl) {
+                if (id === "nova") cdEl.textContent = player.rpdHealUsed ? "USADO" : "1×";
+                else cdEl.textContent = cd > 0 ? Math.ceil(cd) + "s" : "";
+            }
+            return;
+        }
+
+        if (!window.SpaceStrikeAbilities) return;
+        const st = window.SpaceStrikeAbilities.ui();
         const owned = !window.SpaceStrikeAbilities.owns || window.SpaceStrikeAbilities.owns(id);
         btn.classList.toggle("locked", !owned);
         btn.style.opacity = owned ? "" : "0.35";

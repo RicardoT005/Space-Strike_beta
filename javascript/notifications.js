@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v270",
+        title: "VERSIÓN 2.7.0 — R.P.D. LEON",
+        body: "Nueva nave especial R.P.D. LEON (código). Habilidades: INMU 3s · PENTA 5 vías 4s · CURA orbe 1 uso (todas las vidas). Disparo azul."
+    },
+    {
         id: "v2618",
         title: "PARCHE 2.6.18",
         body: "Ranking global: sube automáticamente tu récord local. Botón SUBIR MI RÉCORD en Ranking si no apareces."

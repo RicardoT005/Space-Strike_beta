@@ -121,6 +121,33 @@ const SHIP_CATALOG = {
             bulletColor: "#ff3b4a",
             laserChance: 0.10
         }
+    },
+    rpd: {
+        id: "rpd",
+        name: "R.P.D. LEON ★★",
+        desc: "EXCLUSIVA. Inmunidad 3s · Ráfaga 5 vías 4s · Orbe médico 1 uso (cura todas las vidas). Disparo azul.",
+        cost: 0,
+        free: false,
+        special: true,
+        codeOnly: true,
+        speed: 450,
+        fireRate: 150,
+        maxHealth: 4,
+        damageBonus: 1,
+        color: "#3b82f6",
+        accent: "#fbbf24",
+        sprite: "../img/texturas-especiales/rpd-leon.png",
+        specialStats: {
+            rpdShip: true,
+            agility: true,
+            bulletColor: "#5eb0ff",
+            laserChance: 0,
+            immunitySec: 3,
+            immunityCd: 16,
+            pentaSec: 4,
+            pentaCd: 18,
+            healOrbOnce: true
+        }
     }
 };
 
@@ -348,12 +375,21 @@ function applyShipToPlayer(player) {
         player.specialShieldRegenSec = ship.specialStats.shieldRegenSec || 60;
         player.specialBulletColor = ship.specialStats.bulletColor || null;
         player.specialLaserChance = ship.specialStats.laserChance || 0;
+        player.rpdShip = !!ship.specialStats.rpdShip;
+        if (ship.specialStats.rpdShip) {
+            player.rpdImmunitySec = ship.specialStats.immunitySec || 3;
+            player.rpdImmunityCdMax = ship.specialStats.immunityCd || 16;
+            player.rpdPentaSec = ship.specialStats.pentaSec || 4;
+            player.rpdPentaCdMax = ship.specialStats.pentaCd || 18;
+            player.rpdHealOrb = !!ship.specialStats.healOrbOnce;
+        }
     } else {
         player.specialAgility = false;
         player.specialShieldMax = 0;
         player.specialShieldRegenSec = 60;
         player.specialBulletColor = null;
         player.specialLaserChance = 0;
+        player.rpdShip = false;
     }
     return ship;
 }
