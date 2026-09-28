@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v279",
+        title: "VT-03 VANGUARD PREMIUM",
+        body: "Nueva nave premium VT-03. Fase 1 bombardero · botón TRANS suelta las alas y pasa a modo caza (más rápido y más cadencia)."
+    },
+    {
         id: "v275",
         title: "PARCHE 2.7.5",
         body: "Jefe Overlord cada 10 oleadas en Infinito y Aventura (para pruebas). Cuota de spawn alineada con el jefe."

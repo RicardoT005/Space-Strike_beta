@@ -1603,6 +1603,27 @@ function updateHelper(deltaTime) {
 }
 
 
+function drawVt03Wings() {
+    if (!vt03Wings.active) return;
+    var wl = shipSprites["vt03-wing-l"];
+    var wr = shipSprites["vt03-wing-r"];
+    var ww = 36, wh = 30;
+    if (wl && wl.ready) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, vt03Wings.life / 0.4));
+        ctx.translate(vt03Wings.lx, vt03Wings.ly);
+        ctx.drawImage(wl, -ww / 2, -wh / 2, ww, wh);
+        ctx.restore();
+    }
+    if (wr && wr.ready) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, vt03Wings.life / 0.4));
+        ctx.translate(vt03Wings.rx, vt03Wings.ry);
+        ctx.drawImage(wr, -ww / 2, -wh / 2, ww, wh);
+        ctx.restore();
+    }
+}
+
 function drawHelper() {
 
     if (!helper.active || !player.hasHelper) {
@@ -1744,7 +1765,20 @@ function drawPlayer() {
 
     /* Textured ships (NEBULA + futuras) */
     var sidTex = player.shipId || "interceptor";
+    if (player.vt03Ship) sidTex = "vt03";
     var spr = (typeof shipSprites !== "undefined") ? shipSprites[sidTex] : null;
+    /* VT-03 phase 2: core only (wings drawn separately world-space) */
+    if (player.vt03Ship && player.vt03Phase === 2) {
+        var core = shipSprites["vt03-core"];
+        if (core && core.ready) {
+            var cw = player.width * 1.45;
+            var ch = player.height * 2.1;
+            ctx.drawImage(core, -cw / 2, -ch / 2, cw, ch);
+            ctx.restore();
+            return;
+        }
+    }
+
     if (spr && spr.ready) {
         var sw = player.width * 1.55;
         var sh = player.height * 1.75;
@@ -1753,9 +1787,12 @@ function drawPlayer() {
             sh = player.height * 2.15;
         }
         if (sidTex === "destroyer") {
-            /* T-Wind nose-up sprite (regenerated) */
             sw = player.width * 2.0;
             sh = player.height * 2.05;
+        }
+        if (sidTex === "vt03") {
+            sw = player.width * 2.05;
+            sh = player.height * 2.2;
         }
         ctx.drawImage(spr, -sw / 2, -sh / 2, sw, sh);
         if (player.specialShield > 0) {
@@ -4882,6 +4919,9 @@ function startNewGame() {
     player.nebulaStormCd = 0;
     player.nebulaStormActive = 0;
     player.nebulaShieldCd = 0;
+    player.vt03Phase = 1;
+    player.vt03TransformCd = 0;
+    vt03Wings.active = false;
     game.shieldRegenTimer = 0;
     resetMissionStats();
     if (typeof asteroids !== "undefined") asteroids.length = 0;
@@ -5123,6 +5163,41 @@ function updateRandomEvents(dt) {
     });
 }
 
+
+function activateVt03Transform() {
+    if (!player.vt03Ship || !game.running || game.paused || game.gameOver) return false;
+    if (player.vt03Phase === 2) {
+        if (systemStatus) systemStatus.textContent = "VT-03 ya en modo CAZA";
+        return false;
+    }
+    if (player.vt03TransformCd > 0) return false;
+
+    player.vt03Phase = 2;
+    player.vt03TransformCd = 999; /* once per run until reset */
+    /* boost fighter mode */
+    player.speed = (player.baseSpeed || 400) * 1.35;
+    player.fireRate = Math.max(90, (player.baseFireRate || 145) * 0.72);
+    player.width = Math.max(28, (player.width || 36) * 0.85);
+
+    /* launch wings outward */
+    vt03Wings.active = true;
+    vt03Wings.life = 1.6;
+    vt03Wings.lx = player.x - 28;
+    vt03Wings.ly = player.y + 6;
+    vt03Wings.rx = player.x + 28;
+    vt03Wings.ry = player.y + 6;
+    vt03Wings.lvx = -140;
+    vt03Wings.lvy = 60;
+    vt03Wings.rvx = 140;
+    vt03Wings.rvy = 60;
+
+    if (systemStatus) systemStatus.textContent = "VT-03 · MODO CAZA — ALAS EXPULSADAS";
+    playSound("level");
+    triggerVibration([40, 30, 40]);
+    game.screenShake = Math.max(game.screenShake || 0, 8);
+    return true;
+}
+
 function activateNebulaSkill(slot) {
     if (!player.nebulaShip || player.shipId !== "nebula" && !player.nebulaShip) return false;
     if (!game.running || game.paused || game.gameOver) return false;
@@ -5224,6 +5299,14 @@ function activateAbility(id) {
         }
         return;
     }
+    if (player.vt03Ship || player.shipId === "vt03") {
+        if (id === "overdrive" || id === "emp" || id === "nova") {
+            if (activateVt03Transform()) {
+                updateAbilityUI();
+            }
+            return;
+        }
+    }
     if (player.nebulaShip || player.shipId === "nebula") {
         if (activateNebulaSkill(id)) {
             updateAbilityUI();
@@ -5261,6 +5344,10 @@ function updateAbilityUI() {
         labels.emp = { name: "INMU", key: "1" };
         labels.overdrive = { name: "PENTA", key: "2" };
         labels.nova = { name: "CURA", key: "3" };
+    } else if (player.vt03Ship || player.shipId === "vt03") {
+        labels.emp = { name: "—", key: "1" };
+        labels.overdrive = { name: "TRANS", key: "2" };
+        labels.nova = { name: "—", key: "3" };
     } else if (player.nebulaShip || player.shipId === "nebula") {
         labels.emp = { name: "FASE", key: "1" };
         labels.overdrive = { name: "LASER", key: "2" };
@@ -5292,6 +5379,22 @@ function updateAbilityUI() {
             if (cdEl) {
                 if (id === "nova") cdEl.textContent = player.rpdHealUsed ? "USADO" : "1×";
                 else cdEl.textContent = cd > 0 ? Math.ceil(cd) + "s" : "";
+            }
+            return;
+        }
+        if (player.vt03Ship || player.shipId === "vt03") {
+            btn.classList.remove("locked");
+            btn.style.opacity = (id === "overdrive") ? "" : "0.35";
+            var readyV = player.vt03Phase === 1;
+            btn.title = id === "overdrive"
+                ? (readyV ? "Transformar a modo CAZA (suelta las alas)" : "Ya transformado")
+                : "Solo TRANS activa la fase 2";
+            btn.classList.toggle("ready", id === "overdrive" && readyV);
+            btn.classList.toggle("cooling", id === "overdrive" && !readyV);
+            const cdElV = btn.querySelector(".ability-cd");
+            if (cdElV) {
+                if (id === "overdrive") cdElV.textContent = readyV ? "LISTO" : "CAZA";
+                else cdElV.textContent = "";
             }
             return;
         }

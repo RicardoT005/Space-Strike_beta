@@ -99,6 +99,28 @@ const SHIP_CATALOG = {
         color: "#a78bfa",
         accent: "#e9d5ff"
     },
+    vt03: {
+        id: "vt03",
+        name: "VT-03 VANGUARD ★★",
+        desc: "PREMIUM. Fase 1 bombardero · Fase 2 caza (suelta alas). Habilidad TRANSFORMAR.",
+        cost: 0,
+        free: false,
+        premium: true,
+        special: true,
+        speed: 400,
+        fireRate: 145,
+        maxHealth: 5,
+        damageBonus: 2,
+        color: "#9ca3af",
+        accent: "#fbbf24",
+        sprite: "../img/ships/vt03/phase1.png",
+        specialStats: {
+            vt03Ship: true,
+            doubleCannon: true,
+            bulletColor: "#fbbf24",
+            laserChance: 0.05
+        }
+    },
     nebula: {
         id: "nebula",
         name: "NEBULA ★★",
@@ -379,6 +401,7 @@ function applyShipToPlayer(player) {
         player.specialLaserChance = ship.specialStats.laserChance || 0;
         player.rpdShip = !!ship.specialStats.rpdShip;
         player.nebulaShip = !!(ship.id === "nebula" || ship.specialStats.nebulaSkills);
+        player.vt03Ship = !!(ship.id === "vt03" || ship.specialStats.vt03Ship);
         if (ship.specialStats.rpdShip) {
             player.rpdImmunitySec = ship.specialStats.immunitySec || 3;
             player.rpdImmunityCdMax = ship.specialStats.immunityCd || 16;
@@ -399,6 +422,7 @@ function applyShipToPlayer(player) {
         player.specialLaserChance = 0;
         player.rpdShip = false;
         player.nebulaShip = false;
+        player.vt03Ship = false;
     }
     return ship;
 }
