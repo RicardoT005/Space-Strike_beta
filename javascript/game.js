@@ -2444,12 +2444,41 @@ function updateEnemies(deltaTime) {
             deltaTime;
 
 
+        const isBossUnit = !!(enemy.isBoss || enemy.type === "boss");
+
         if (enemy.frozen && enemy.frozen > 0) {
             enemy.frozen -= deltaTime;
+        } else if (isBossUnit) {
+            /*
+                BOSS AI:
+                1) Baja hasta ~28% de la pantalla
+                2) Se queda y sigue al jugador en X
+                3) Nunca se sale por abajo
+            */
+            const holdY = Math.min(canvasHeight * 0.28, canvasHeight * 0.35);
+            if (!enemy.bossParked) {
+                enemy.y += enemy.speed * deltaTime;
+                if (enemy.y >= holdY) {
+                    enemy.y = holdY;
+                    enemy.bossParked = true;
+                }
+            } else {
+                const trackSpeed =
+                    (90 + (enemy.bossPhase >= 2 ? 55 : 0)) *
+                    (game.mode === "adventure" ? 0.95 : 1);
+                const dx = player.x - enemy.x;
+                if (Math.abs(dx) > 4) {
+                    enemy.x +=
+                        (dx > 0 ? 1 : -1) *
+                        Math.min(Math.abs(dx), trackSpeed * deltaTime);
+                }
+                /* leve bob vertical para que no se vea estático */
+                enemy.y = holdY + Math.sin(enemy.age * 1.4) * 10;
+            }
         } else {
             enemy.y +=
-            enemy.speed *
-            deltaTime;
+                enemy.speed *
+                deltaTime;
         }
 
 
@@ -2459,8 +2488,11 @@ function updateEnemies(deltaTime) {
         */
 
         if (
-            enemy.type === "fast" ||
-            enemy.type === "shooter"
+            !isBossUnit &&
+            (
+                enemy.type === "fast" ||
+                enemy.type === "shooter"
+            )
         ) {
 
             enemy.x +=
@@ -2482,6 +2514,12 @@ function updateEnemies(deltaTime) {
                 canvasWidth -
                 enemy.width / 2
             );
+
+        /* Boss never leaves bottom of screen */
+        if (isBossUnit) {
+            const maxY = canvasHeight * 0.42;
+            if (enemy.y > maxY) enemy.y = maxY;
+        }
 
 
         /*
@@ -2533,15 +2571,25 @@ function updateEnemies(deltaTime) {
             enemy.height
         ) {
 
+            /* Boss: nunca se elimina por salir; lo recolocamos */
+            if (enemy.isBoss || enemy.type === "boss") {
+                enemy.bossParked = true;
+                enemy.y = Math.min(canvasHeight * 0.28, canvasHeight * 0.35);
+                enemy.x = clamp(
+                    player.x,
+                    enemy.width / 2,
+                    canvasWidth - enemy.width / 2
+                );
+                continue;
+            }
+
             enemies.splice(
                 i,
                 1
             );
 
             /* Allow replacement spawn so the wave stays completable */
-            if (!enemy.isBoss) {
-                game.waveSpawned = Math.max(0, game.waveSpawned - 1);
-            }
+            game.waveSpawned = Math.max(0, game.waveSpawned - 1);
 
             continue;
 
@@ -3716,6 +3764,7 @@ function spawnBossForWave(wave) {
         isBoss: true,
         bossPhase: 1,
         phaseAnnounced: false,
+        bossParked: false,
         spriteId: "overlord"
     });
 
