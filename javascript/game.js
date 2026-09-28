@@ -903,6 +903,12 @@ loadShipSprite("rpd", [
     "img/texturas-especiales/rpd-leon.png",
     "img/ships/rpd.png"
 ]);
+loadShipSprite("rpd-drone", [
+    "../img/texturas-especiales/rpd-drone.png",
+    "../img/ships/rpd-drone.png",
+    "img/texturas-especiales/rpd-drone.png",
+    "img/ships/rpd-drone.png"
+]);
 
 const PERF = {
     isMobile:
@@ -1282,6 +1288,11 @@ function applyOwnedUpgrades() {
         player.shields = Math.max(0, Number(u.shield) || 0);
         player.doubleCannon = Number(u.doubleCannon) > 0;
         player.hasHelper = Number(u.helper) > 0;
+        /* R.P.D. incluye dron policial de serie */
+        if (player.rpdShip || player.shipId === "rpd") {
+            player.hasHelper = true;
+            player.rpdDrone = true;
+        }
         player.pierce = Number(u.pierce) > 0;
         player.multiShot = Number(u.multiShot) > 0;
         player.bulletDamage = 1 + (player.shipDamageBonus || 0) + Math.max(0, Number(u.damage) || 0);
@@ -1497,10 +1508,12 @@ function updateHelper(deltaTime) {
         return;
     }
 
-    helper.orbit += deltaTime * 2.2;
+    const isRpd = !!(player.rpdDrone || player.rpdShip || player.shipId === "rpd");
+    helper.orbit += deltaTime * (isRpd ? 2.8 : 2.2);
 
-    const targetX = player.x + Math.cos(helper.orbit) * 48;
-    const targetY = player.y + Math.sin(helper.orbit) * 28 - 10;
+    const orbitR = isRpd ? 56 : 48;
+    const targetX = player.x + Math.cos(helper.orbit) * orbitR;
+    const targetY = player.y + Math.sin(helper.orbit) * (isRpd ? 32 : 28) - 10;
 
     helper.x += (targetX - helper.x) * Math.min(1, deltaTime * 6);
     helper.y += (targetY - helper.y) * Math.min(1, deltaTime * 6);
@@ -1528,15 +1541,34 @@ function updateHelper(deltaTime) {
         }
 
         if (nearest) {
-            helper.fireCooldown = 280;
-            playerProjectiles.push({
-                x: helper.x,
-                y: helper.y,
-                radius: 2.5,
-                speed: 700,
-                damage: 1,
-                fromHelper: true
-            });
+            /* R.P.D. drone: más rápido; en PENTA dispara 5 vías */
+            const penta = isRpd && player.rpdPentaActive > 0;
+            helper.fireCooldown = penta ? 160 : (isRpd ? 220 : 280);
+            const dmg = isRpd ? Math.max(1, (player.bulletDamage || 1)) : 1;
+            const col = isRpd ? "#5eb0ff" : null;
+
+            function pushHelperShot(vx) {
+                playerProjectiles.push({
+                    x: helper.x,
+                    y: helper.y,
+                    radius: penta ? 2.2 : 2.5,
+                    speed: isRpd ? 780 : 700,
+                    damage: dmg,
+                    fromHelper: true,
+                    vx: vx || 0,
+                    color: col
+                });
+            }
+
+            if (penta) {
+                pushHelperShot(0);
+                pushHelperShot(-110);
+                pushHelperShot(110);
+                pushHelperShot(-200);
+                pushHelperShot(200);
+            } else {
+                pushHelperShot(0);
+            }
         }
 
     }
@@ -1556,9 +1588,32 @@ function drawHelper() {
 
     ctx.save();
     ctx.translate(helper.x, helper.y);
-    ctx.fillStyle = "#7ef0c8";
+
+    const isRpd = !!(player.rpdDrone || player.rpdShip || player.shipId === "rpd");
+    var dspr = (typeof shipSprites !== "undefined") ? shipSprites["rpd-drone"] : null;
+
+    if (isRpd && dspr && dspr.ready) {
+        var dw = 42;
+        var dh = 42;
+        /* Glow when immunity / penta / heal available */
+        if (player.invulnerable > 0 && player.rpdShip) {
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = "rgba(80,180,255,0.9)";
+        } else if (player.rpdPentaActive > 0) {
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = "rgba(255,200,80,0.85)";
+        } else {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "rgba(90,160,255,0.55)";
+        }
+        ctx.drawImage(dspr, -dw / 2, -dh / 2, dw, dh);
+        ctx.restore();
+        return;
+    }
+
+    ctx.fillStyle = isRpd ? "#5eb0ff" : "#7ef0c8";
     ctx.shadowBlur = 12;
-    ctx.shadowColor = "rgba(80,255,200,0.7)";
+    ctx.shadowColor = isRpd ? "rgba(80,160,255,0.7)" : "rgba(80,255,200,0.7)";
     ctx.beginPath();
     ctx.moveTo(0, -10);
     ctx.lineTo(8, 8);
@@ -4979,7 +5034,7 @@ function activateRpdSkill(slot) {
         if (player.rpdImmunityCd > 0) return false;
         player.invulnerable = Math.max(player.invulnerable, player.rpdImmunitySec || 3);
         player.rpdImmunityCd = player.rpdImmunityCdMax || 16;
-        if (systemStatus) systemStatus.textContent = "R.P.D. INMUNIDAD 3s";
+        if (systemStatus) systemStatus.textContent = "DRON R.P.D. · INMUNIDAD 3s";
         playSound("level");
         triggerVibration(25);
         return true;
@@ -4988,7 +5043,7 @@ function activateRpdSkill(slot) {
         if (player.rpdPentaCd > 0) return false;
         player.rpdPentaActive = player.rpdPentaSec || 4;
         player.rpdPentaCd = player.rpdPentaCdMax || 18;
-        if (systemStatus) systemStatus.textContent = "R.P.D. RÁFAGA 5 VÍAS";
+        if (systemStatus) systemStatus.textContent = "DRON R.P.D. · RÁFAGA 5 VÍAS";
         playSound("level");
         triggerVibration(25);
         return true;
@@ -5012,7 +5067,7 @@ function activateRpdSkill(slot) {
             });
         } catch (eOrb) {}
         updateLivesUI();
-        if (systemStatus) systemStatus.textContent = "ORBE MÉDICO · VIDAS AL MÁXIMO";
+        if (systemStatus) systemStatus.textContent = "DRON R.P.D. · ORBE MÉDICO";
         playSound("level");
         triggerVibration([30, 20, 30]);
         return true;

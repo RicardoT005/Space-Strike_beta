@@ -125,7 +125,7 @@ const SHIP_CATALOG = {
     rpd: {
         id: "rpd",
         name: "R.P.D. LEON ★★",
-        desc: "EXCLUSIVA. Inmunidad 3s · Ráfaga 5 vías 4s · Orbe médico 1 uso (cura todas las vidas). Disparo azul.",
+        desc: "EXCLUSIVA. Incluye dron policial R.P.D.: INMU 3s · PENTA 5 vías 4s · ORBE cura 1 uso. Disparo azul.",
         cost: 0,
         free: false,
         special: true,

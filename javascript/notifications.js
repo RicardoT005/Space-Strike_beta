@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v271",
+        title: "R.P.D. DRON POLICIAL",
+        body: "La nave R.P.D. LEON trae dron de apoyo. El dron aplica INMU, PENTA 5 vías y el ORBE médico (1 uso)."
+    },
+    {
         id: "v270",
         title: "VERSIÓN 2.7.0 — R.P.D. LEON",
         body: "Nueva nave especial R.P.D. LEON (código). Habilidades: INMU 3s · PENTA 5 vías 4s · CURA orbe 1 uso (todas las vidas). Disparo azul."
