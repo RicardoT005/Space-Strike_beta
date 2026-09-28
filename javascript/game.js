@@ -768,6 +768,11 @@ const player = {
     rpdPentaActive: 0,
     rpdHealUsed: false,
     rpdShip: false,
+    nebulaShip: false,
+    nebulaPhaseCd: 0,
+    nebulaStormCd: 0,
+    nebulaStormActive: 0,
+    nebulaShieldCd: 0,
 
     visible: true,
 
@@ -884,6 +889,11 @@ function loadShipSprite(id, srcList) {
     tryNext();
 }
 /* Try several relative paths (localhost / netlify / nested) */
+loadShipSprite("destroyer", [
+    "../img/ships/t-wind.png",
+    "img/ships/t-wind.png",
+    "/img/ships/t-wind.png"
+]);
 loadShipSprite("nebula", [
     "../img/texturas-especiales/nave-especial.png",
     "../img/ships/nebula.png",
@@ -1248,13 +1258,26 @@ function applyOwnedUpgrades() {
             player.shipId = localStorage.getItem("spaceStrikeEquippedShip") || player.shipId || "interceptor";
         }
     } catch (e2) {}
+    if (player.shipId === "destroyer") {
+        if (typeof loadShipSprite === "function") {
+            loadShipSprite("destroyer", [
+                "../img/ships/t-wind.png",
+                "img/ships/t-wind.png"
+            ]);
+        }
+    }
     if (player.shipId === "nebula") {
         player.specialShip = true;
         if (!player.specialStats) {
             player.specialStats = { doubleCannon: true, agility: true, shieldMax: 3, shieldRegenSec: 60, bulletColor: "#ff3b4a", laserChance: 0.1 };
         }
         if (typeof loadShipSprite === "function") {
-            loadShipSprite("nebula", [
+            loadShipSprite("destroyer", [
+    "../img/ships/t-wind.png",
+    "img/ships/t-wind.png",
+    "/img/ships/t-wind.png"
+]);
+loadShipSprite("nebula", [
                 "../img/texturas-especiales/nave-especial.png",
                 "../img/ships/nebula.png",
                 "img/texturas-especiales/nave-especial.png",
@@ -1420,6 +1443,10 @@ function updatePlayer(deltaTime) {
     if (player.rpdImmunityCd > 0) player.rpdImmunityCd = Math.max(0, player.rpdImmunityCd - deltaTime);
     if (player.rpdPentaCd > 0) player.rpdPentaCd = Math.max(0, player.rpdPentaCd - deltaTime);
     if (player.rpdPentaActive > 0) player.rpdPentaActive = Math.max(0, player.rpdPentaActive - deltaTime);
+    if (player.nebulaPhaseCd > 0) player.nebulaPhaseCd = Math.max(0, player.nebulaPhaseCd - deltaTime);
+    if (player.nebulaStormCd > 0) player.nebulaStormCd = Math.max(0, player.nebulaStormCd - deltaTime);
+    if (player.nebulaStormActive > 0) player.nebulaStormActive = Math.max(0, player.nebulaStormActive - deltaTime);
+    if (player.nebulaShieldCd > 0) player.nebulaShieldCd = Math.max(0, player.nebulaShieldCd - deltaTime);
 
 
     if (player.canControl && player.visible) {
@@ -1725,6 +1752,10 @@ function drawPlayer() {
             sw = player.width * 1.7;
             sh = player.height * 2.15;
         }
+        if (sidTex === "destroyer") {
+            sw = player.width * 1.85;
+            sh = player.height * 2.4;
+        }
         ctx.drawImage(spr, -sw / 2, -sh / 2, sw, sh);
         if (player.specialShield > 0) {
             ctx.strokeStyle = "rgba(120,180,255," + (0.25 + (player.specialShield || 0) * 0.15) + ")";
@@ -1995,7 +2026,9 @@ function attemptPlayerFire() {
     const useDouble = player.doubleCannon === true;
     const useMulti = player.multiShot === true;
 
-    const isLaser = player.specialShip && Math.random() < (player.specialLaserChance || 0);
+    var laserChance = player.specialLaserChance || 0;
+    if (player.nebulaShip && player.nebulaStormActive > 0) laserChance = 1;
+    const isLaser = player.specialShip && Math.random() < laserChance;
     const rpdPenta = player.rpdShip && player.rpdPentaActive > 0;
     const bColor = player.specialBulletColor || null;
 
@@ -4786,6 +4819,10 @@ function startNewGame() {
     player.rpdPentaActive = 0;
     player.rpdImmunityCd = 0;
     player.rpdPentaCd = 0;
+    player.nebulaPhaseCd = 0;
+    player.nebulaStormCd = 0;
+    player.nebulaStormActive = 0;
+    player.nebulaShieldCd = 0;
     game.shieldRegenTimer = 0;
     resetMissionStats();
     if (typeof asteroids !== "undefined") asteroids.length = 0;
@@ -5027,6 +5064,49 @@ function updateRandomEvents(dt) {
     });
 }
 
+function activateNebulaSkill(slot) {
+    if (!player.nebulaShip || player.shipId !== "nebula" && !player.nebulaShip) return false;
+    if (!game.running || game.paused || game.gameOver) return false;
+    if (slot === "emp") {
+        /* FASE: 2.5s invuln + speed burst */
+        if (player.nebulaPhaseCd > 0) return false;
+        player.invulnerable = Math.max(player.invulnerable, 2.5);
+        player.nebulaPhaseCd = player.nebulaPhaseCdMax || 14;
+        player.speed = (player.baseSpeed || 480) * 1.45;
+        window.setTimeout(function () {
+            if (player.nebulaShip) player.speed = player.baseSpeed || 480;
+        }, 2500);
+        if (systemStatus) systemStatus.textContent = "NEBULA · FASE 2.5s";
+        playSound("level");
+        triggerVibration(25);
+        return true;
+    }
+    if (slot === "overdrive") {
+        /* TORMENTA LÁSER: 4s 100% láser */
+        if (player.nebulaStormCd > 0) return false;
+        player.nebulaStormActive = 4;
+        player.nebulaStormCd = player.nebulaStormCdMax || 18;
+        if (systemStatus) systemStatus.textContent = "NEBULA · TORMENTA LÁSER";
+        playSound("level");
+        triggerVibration(30);
+        return true;
+    }
+    if (slot === "nova") {
+        /* Recarga escudo especial al máximo */
+        if (player.nebulaShieldCd > 0) return false;
+        var maxS = player.specialShieldMax || 3;
+        player.specialShield = maxS;
+        player.specialShieldTimer = 0;
+        player.nebulaShieldCd = player.nebulaShieldCdMax || 22;
+        if (systemStatus) systemStatus.textContent = "NEBULA · ESCUDO " + maxS + "/" + maxS;
+        playSound("level");
+        triggerVibration([20, 15, 20]);
+        updateLivesUI();
+        return true;
+    }
+    return false;
+}
+
 function activateRpdSkill(slot) {
     /* slot: emp=immunity, overdrive=penta, nova=heal orb */
     if (!player.rpdShip || !game.running || game.paused || game.gameOver) return false;
@@ -5077,9 +5157,16 @@ function activateRpdSkill(slot) {
 
 function activateAbility(id) {
     if (!game.running || game.paused || game.gameOver) return;
-    /* R.P.D. ship overrides ability slots with exclusive skills */
+    /* Exclusive ship skills override shop abilities */
     if (player.rpdShip) {
         if (activateRpdSkill(id)) {
+            updateAbilityUI();
+            return;
+        }
+        return;
+    }
+    if (player.nebulaShip || player.shipId === "nebula") {
+        if (activateNebulaSkill(id)) {
             updateAbilityUI();
             return;
         }
@@ -5115,6 +5202,10 @@ function updateAbilityUI() {
         labels.emp = { name: "INMU", key: "1" };
         labels.overdrive = { name: "PENTA", key: "2" };
         labels.nova = { name: "CURA", key: "3" };
+    } else if (player.nebulaShip || player.shipId === "nebula") {
+        labels.emp = { name: "FASE", key: "1" };
+        labels.overdrive = { name: "LASER", key: "2" };
+        labels.nova = { name: "ESCUDO", key: "3" };
     }
     ["emp", "overdrive", "nova"].forEach(function (id) {
         const btn = document.getElementById("ability-" + id);
@@ -5143,6 +5234,23 @@ function updateAbilityUI() {
                 if (id === "nova") cdEl.textContent = player.rpdHealUsed ? "USADO" : "1×";
                 else cdEl.textContent = cd > 0 ? Math.ceil(cd) + "s" : "";
             }
+            return;
+        }
+        if (player.nebulaShip || player.shipId === "nebula") {
+            btn.classList.remove("locked");
+            btn.style.opacity = "";
+            var cdN = 0;
+            var readyN = true;
+            if (id === "emp") { cdN = player.nebulaPhaseCd || 0; readyN = cdN <= 0; }
+            if (id === "overdrive") { cdN = player.nebulaStormCd || 0; readyN = cdN <= 0; }
+            if (id === "nova") { cdN = player.nebulaShieldCd || 0; readyN = cdN <= 0; }
+            btn.title = id === "emp" ? "Fase: invulnerable 2.5s + velocidad"
+                : id === "overdrive" ? "Tormenta láser 4s (todos los disparos láser)"
+                : "Recarga escudo especial al máximo";
+            btn.classList.toggle("ready", readyN);
+            btn.classList.toggle("cooling", !readyN);
+            const cdElN = btn.querySelector(".ability-cd");
+            if (cdElN) cdElN.textContent = cdN > 0 ? Math.ceil(cdN) + "s" : "";
             return;
         }
 

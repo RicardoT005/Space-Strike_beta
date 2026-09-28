@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v272",
+        title: "PARCHE 2.7.2",
+        body: "Destructor con textura T-Wind. Nebula: habilidades FASE, TORMENTA LÁSER y recarga de ESCUDO."
+    },
+    {
         id: "v271",
         title: "R.P.D. DRON POLICIAL",
         body: "La nave R.P.D. LEON trae dron de apoyo. El dron aplica INMU, PENTA 5 vías y el ORBE médico (1 uso)."

@@ -60,7 +60,7 @@ const SHIP_CATALOG = {
     destroyer: {
         id: "destroyer",
         name: "DESTRUCTOR",
-        desc: "Alto daño y casco medio.",
+        desc: "Bombardero pesado T-Wind. Alto daño y casco medio.",
         cost: 900,
         free: false,
         speed: 360,
@@ -68,7 +68,8 @@ const SHIP_CATALOG = {
         maxHealth: 4,
         damageBonus: 2,
         color: "#ff6b6b",
-        accent: "#ffd0d0"
+        accent: "#ffd0d0",
+        sprite: "../img/ships/t-wind.png"
     },
     phoenix: {
         id: "phoenix",
@@ -101,7 +102,7 @@ const SHIP_CATALOG = {
     nebula: {
         id: "nebula",
         name: "NEBULA ★★",
-        desc: "EXCLUSIVA. Doble cañón, agilidad alta, escudo 3 hits (regen 60s). Disparo rojo + 10% láser.",
+        desc: "EXCLUSIVA. Doble cañón, escudo 3, disparo rojo+láser. Habilidades: FASE · TORMENTA LÁSER · ESCUDO ★.",
         cost: 0,
         free: false,
         special: true,
@@ -119,7 +120,8 @@ const SHIP_CATALOG = {
             shieldMax: 3,
             shieldRegenSec: 60,
             bulletColor: "#ff3b4a",
-            laserChance: 0.10
+            laserChance: 0.10,
+            nebulaSkills: true
         }
     },
     rpd: {
@@ -376,12 +378,18 @@ function applyShipToPlayer(player) {
         player.specialBulletColor = ship.specialStats.bulletColor || null;
         player.specialLaserChance = ship.specialStats.laserChance || 0;
         player.rpdShip = !!ship.specialStats.rpdShip;
+        player.nebulaShip = !!(ship.id === "nebula" || ship.specialStats.nebulaSkills);
         if (ship.specialStats.rpdShip) {
             player.rpdImmunitySec = ship.specialStats.immunitySec || 3;
             player.rpdImmunityCdMax = ship.specialStats.immunityCd || 16;
             player.rpdPentaSec = ship.specialStats.pentaSec || 4;
             player.rpdPentaCdMax = ship.specialStats.pentaCd || 18;
             player.rpdHealOrb = !!ship.specialStats.healOrbOnce;
+        }
+        if (player.nebulaShip) {
+            player.nebulaPhaseCdMax = 14;
+            player.nebulaStormCdMax = 18;
+            player.nebulaShieldCdMax = 22;
         }
     } else {
         player.specialAgility = false;
@@ -390,6 +398,7 @@ function applyShipToPlayer(player) {
         player.specialBulletColor = null;
         player.specialLaserChance = 0;
         player.rpdShip = false;
+        player.nebulaShip = false;
     }
     return ship;
 }
