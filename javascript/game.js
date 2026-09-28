@@ -798,6 +798,15 @@ const player = {
 };
 
 
+/* VT-03 detached wings (transform animation) */
+const vt03Wings = {
+    active: false,
+    lx: 0, ly: 0, rx: 0, ry: 0,
+    lvx: 0, lvy: 0, rvx: 0, rvy: 0,
+    lrot: 0, rrot: 0,
+    life: 0
+};
+
 /* Helper drone */
 const helper = {
     active: false,
@@ -1722,7 +1731,7 @@ function updateHelper(deltaTime) {
 
 
 function drawVt03Wings() {
-    if (!vt03Wings || !vt03Wings.active) return;
+    if (typeof vt03Wings === "undefined" || !vt03Wings || !vt03Wings.active) return;
     if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
     var wl = shipSprites["vt03-wing-l"];
     var wr = shipSprites["vt03-wing-r"];
