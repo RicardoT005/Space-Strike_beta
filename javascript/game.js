@@ -1549,7 +1549,23 @@ function updatePlayer(deltaTime) {
     if (player.nebulaStormCd > 0) player.nebulaStormCd = Math.max(0, player.nebulaStormCd - deltaTime);
     if (player.nebulaStormActive > 0) player.nebulaStormActive = Math.max(0, player.nebulaStormActive - deltaTime);
     if (player.nebulaShieldCd > 0) player.nebulaShieldCd = Math.max(0, player.nebulaShieldCd - deltaTime);
+    if (player.vt03TransformCd > 0) player.vt03TransformCd = Math.max(0, player.vt03TransformCd - deltaTime);
 
+    /* VT-03 detached wings animation */
+    if (typeof vt03Wings !== "undefined" && vt03Wings.active) {
+        vt03Wings.life -= deltaTime;
+        vt03Wings.lx += vt03Wings.lvx * deltaTime;
+        vt03Wings.ly += vt03Wings.lvy * deltaTime;
+        vt03Wings.rx += vt03Wings.rvx * deltaTime;
+        vt03Wings.ry += vt03Wings.rvy * deltaTime;
+        vt03Wings.lvy += 90 * deltaTime;
+        vt03Wings.rvy += 90 * deltaTime;
+        vt03Wings.lrot = (vt03Wings.lrot || 0) - 2.8 * deltaTime;
+        vt03Wings.rrot = (vt03Wings.rrot || 0) + 2.8 * deltaTime;
+        if (vt03Wings.life <= 0) {
+            vt03Wings.active = false;
+        }
+    }
 
     if (player.canControl && player.visible) {
 
@@ -1706,21 +1722,27 @@ function updateHelper(deltaTime) {
 
 
 function drawVt03Wings() {
-    if (!vt03Wings.active) return;
+    if (!vt03Wings || !vt03Wings.active) return;
+    if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
     var wl = shipSprites["vt03-wing-l"];
     var wr = shipSprites["vt03-wing-r"];
-    var ww = 36, wh = 30;
+    /* Fade only in last 0.45s; full opacity before */
+    var alpha = 1;
+    if (vt03Wings.life < 0.45) alpha = Math.max(0, vt03Wings.life / 0.45);
+    var ww = 48, wh = 40;
     if (wl && wl.ready) {
         ctx.save();
-        ctx.globalAlpha = Math.max(0, Math.min(1, vt03Wings.life / 0.4));
+        ctx.globalAlpha = alpha;
         ctx.translate(vt03Wings.lx, vt03Wings.ly);
+        ctx.rotate(vt03Wings.lrot || 0);
         ctx.drawImage(wl, -ww / 2, -wh / 2, ww, wh);
         ctx.restore();
     }
     if (wr && wr.ready) {
         ctx.save();
-        ctx.globalAlpha = Math.max(0, Math.min(1, vt03Wings.life / 0.4));
+        ctx.globalAlpha = alpha;
         ctx.translate(vt03Wings.rx, vt03Wings.ry);
+        ctx.rotate(vt03Wings.rrot || 0);
         ctx.drawImage(wr, -ww / 2, -wh / 2, ww, wh);
         ctx.restore();
     }
@@ -4738,6 +4760,8 @@ function render() {
 
     drawPlayer();
 
+    drawVt03Wings();
+
     drawHelper();
 
 
@@ -5290,17 +5314,35 @@ function activateVt03Transform() {
     player.fireRate = Math.max(90, (player.baseFireRate || 145) * 0.72);
     player.width = Math.max(28, (player.width || 36) * 0.85);
 
-    /* launch wings outward */
+    if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
+
+    /* launch wings outward with spin */
     vt03Wings.active = true;
-    vt03Wings.life = 1.6;
-    vt03Wings.lx = player.x - 28;
-    vt03Wings.ly = player.y + 6;
-    vt03Wings.rx = player.x + 28;
-    vt03Wings.ry = player.y + 6;
-    vt03Wings.lvx = -140;
-    vt03Wings.lvy = 60;
-    vt03Wings.rvx = 140;
-    vt03Wings.rvy = 60;
+    vt03Wings.life = 2.4;
+    vt03Wings.lx = player.x - 32;
+    vt03Wings.ly = player.y + 4;
+    vt03Wings.rx = player.x + 32;
+    vt03Wings.ry = player.y + 4;
+    vt03Wings.lvx = -180;
+    vt03Wings.lvy = -40;
+    vt03Wings.rvx = 180;
+    vt03Wings.rvy = -40;
+    vt03Wings.lrot = 0;
+    vt03Wings.rrot = 0;
+
+    /* spark particles at detach */
+    try {
+        for (var pi = 0; pi < 14; pi++) {
+            var ang = (Math.PI * 2 * pi) / 14;
+            createParticle(player.x, player.y, {
+                vx: Math.cos(ang) * (80 + Math.random() * 120),
+                vy: Math.sin(ang) * (80 + Math.random() * 120),
+                life: 0.5 + Math.random() * 0.4,
+                size: 2 + Math.random() * 3,
+                color: pi % 2 ? "#fbbf24" : "#9ca3af"
+            });
+        }
+    } catch (eP) {}
 
     if (systemStatus) systemStatus.textContent = "VT-03 · MODO CAZA — ALAS EXPULSADAS";
     playSound("level");
