@@ -106,7 +106,6 @@ const SHIP_CATALOG = {
         cost: 0,
         free: false,
         premium: true,
-        special: true,
         speed: 400,
         fireRate: 145,
         maxHealth: 5,

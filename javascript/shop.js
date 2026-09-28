@@ -58,11 +58,8 @@
                 S.setEquipped(id);
                 renderShips();
             });
-        } else if (isSpecial) {
-            btn.textContent = "CÓDIGO EXCLUSIVO";
-            btn.disabled = true;
-            btn.className = "premium-lock";
         } else if (ship.premium) {
+            /* Premium ships (Phoenix, Void, VT-03): unlock if premium active */
             var prem = window.SpaceStrikePremium && window.SpaceStrikePremium.isPremium && window.SpaceStrikePremium.isPremium();
             if (prem) {
                 btn.textContent = "DESBLOQUEAR ★";
@@ -71,6 +68,8 @@
                     if (res.ok) {
                         S.setEquipped(id);
                         renderAll();
+                    } else {
+                        console.warn("[Shop] buy premium fail", res);
                     }
                 });
             } else {
@@ -78,6 +77,10 @@
                 btn.disabled = true;
                 btn.className = "premium-lock";
             }
+        } else if (isSpecial) {
+            btn.textContent = "CÓDIGO EXCLUSIVO";
+            btn.disabled = true;
+            btn.className = "premium-lock";
         } else {
             btn.textContent = "COMPRAR · " + ship.cost;
             if (coins < ship.cost) btn.disabled = true;
