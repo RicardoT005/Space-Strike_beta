@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v290",
+        title: "VERSIÓN 2.9.0 — MISILES",
+        body: "Destructor lanza misiles teledirigidos. Tienda: cantidad, ojiva y radio. En Infinito, oleadas 9/19/29… elige mejora de misil."
+    },
+    {
         id: "v279",
         title: "VT-03 VANGUARD PREMIUM",
         body: "Nueva nave premium VT-03. Fase 1 bombardero · botón TRANS suelta las alas y pasa a modo caza (más rápido y más cadencia)."

@@ -111,6 +111,30 @@ const UPGRADE_CATALOG = {
         maxLevel: 1,
         baseCost: 500,
         costScale: 1
+    },
+    missileCount: {
+        id: "missileCount",
+        name: "MISILES ×N",
+        desc: "Cantidad de misiles teledirigidos por salva (1→5). Ideal con Destructor.",
+        maxLevel: 4,
+        baseCost: 180,
+        costScale: 1.55
+    },
+    missileDamage: {
+        id: "missileDamage",
+        name: "OJIVA",
+        desc: "Más daño por misil y en el centro de la explosión.",
+        maxLevel: 4,
+        baseCost: 160,
+        costScale: 1.5
+    },
+    missileBlast: {
+        id: "missileBlast",
+        name: "RADIO EXPLOSIÓN",
+        desc: "Mayor área de daño. Enemigos cerca del centro reciben más daño.",
+        maxLevel: 4,
+        baseCost: 170,
+        costScale: 1.5
     }
 };
 
@@ -127,7 +151,10 @@ const DEFAULT_UPGRADES = {
     abilityNova: 0,
     multiShot: 0,
     damage: 0,
-    magnet: 0
+    magnet: 0,
+    missileCount: 0,
+    missileDamage: 0,
+    missileBlast: 0
 };
 
 function loadCoins() {
@@ -213,7 +240,10 @@ function applyUpgradesToPlayer(player, upgrades) {
     player.multiShot = Number(u.multiShot) > 0;
     player.bulletDamage = 1 + Math.max(0, Number(u.damage) || 0);
     player.coinBonus = 1 + Math.max(0, Number(u.magnet) || 0) * 0.08;
-    /* Never invent upgrades that are not in the saved profile */
+    /* Misiles teledirigidos (Destructor + mejoras de tienda) */
+    player.missileCountLv = Math.max(0, Number(u.missileCount) || 0);
+    player.missileDamageLv = Math.max(0, Number(u.missileDamage) || 0);
+    player.missileBlastLv = Math.max(0, Number(u.missileBlast) || 0);
     return u;
 }
 

@@ -792,6 +792,10 @@ const player = {
     specialShip: false,
 
     hasHelper: false,
+    missileCooldown: 0,
+    missileCountLv: 0,
+    missileDamageLv: 0,
+    missileBlastLv: 0,
 
     thrustAnimation: 0
 
@@ -854,6 +858,7 @@ const touchInput = {
 ================================================================ */
 
 const playerProjectiles = [];
+const homingMissiles = [];
 
 const enemyProjectiles = [];
 
@@ -1431,6 +1436,9 @@ function applyOwnedUpgrades() {
         player.multiShot = Number(u.multiShot) > 0;
         player.bulletDamage = 1 + (player.shipDamageBonus || 0) + Math.max(0, Number(u.damage) || 0);
         player.coinBonus = 1 + Math.max(0, Number(u.magnet) || 0) * 0.08;
+        player.missileCountLv = Number(u.missileCount) || 0;
+        player.missileDamageLv = Number(u.missileDamage) || 0;
+        player.missileBlastLv = Number(u.missileBlast) || 0;
     }
 
     /* NEBULA special: fixed traits (no stack beyond ship) */
@@ -2144,6 +2152,283 @@ function drawPlayer() {
 /* ================================================================
    PLAYER FIRE
 ================================================================ */
+
+
+/* ================================================================
+   HOMING MISSILES (Destructor + shop upgrades)
+================================================================ */
+
+function getMissileSalvoCount() {
+    /* base 1 if destroyer OR any missile upgrade; + levels */
+    var base = 0;
+    if (player.shipId === "destroyer" || player.missileCountLv > 0 || player.missileDamageLv > 0 || player.missileBlastLv > 0) {
+        base = 1;
+    }
+    if (player.shipId === "destroyer") base = Math.max(base, 1);
+    return Math.min(5, base + (player.missileCountLv || 0));
+}
+
+function getMissileDamage() {
+    return 2 + (player.missileDamageLv || 0) * 1.5 + (player.shipDamageBonus || 0) * 0.5;
+}
+
+function getMissileBlastRadius() {
+    return 36 + (player.missileBlastLv || 0) * 18;
+}
+
+function pickMissileTarget() {
+    if (!enemies.length) return null;
+    var pool = enemies.filter(function (e) { return e && e.health > 0; });
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function fireHomingMissiles() {
+    var n = getMissileSalvoCount();
+    if (n <= 0) return;
+    if (!player.visible || !player.canShoot) return;
+    for (var i = 0; i < n; i++) {
+        var target = pickMissileTarget();
+        var spread = (i - (n - 1) / 2) * 10;
+        homingMissiles.push({
+            x: player.x + spread,
+            y: player.y - player.height / 2,
+            vx: spread * 4,
+            vy: -220,
+            speed: 320 + (player.missileDamageLv || 0) * 20,
+            damage: getMissileDamage(),
+            blast: getMissileBlastRadius(),
+            life: 4.5,
+            targetId: target ? enemies.indexOf(target) : -1,
+            trail: 0
+        });
+    }
+    playSound("shoot");
+}
+
+function updateHomingMissiles(dt) {
+    for (var i = homingMissiles.length - 1; i >= 0; i--) {
+        var m = homingMissiles[i];
+        m.life -= dt;
+        m.trail += dt;
+
+        /* reacquire target if lost */
+        var tgt = null;
+        if (m.targetId >= 0 && m.targetId < enemies.length) {
+            tgt = enemies[m.targetId];
+            if (!tgt || tgt.health <= 0) tgt = null;
+        }
+        if (!tgt) {
+            tgt = pickMissileTarget();
+            m.targetId = tgt ? enemies.indexOf(tgt) : -1;
+        }
+
+        if (tgt) {
+            var dx = tgt.x - m.x;
+            var dy = tgt.y - m.y;
+            var dist = Math.hypot(dx, dy) || 1;
+            var desiredVx = (dx / dist) * m.speed;
+            var desiredVy = (dy / dist) * m.speed;
+            m.vx += (desiredVx - m.vx) * Math.min(1, dt * 4.5);
+            m.vy += (desiredVy - m.vy) * Math.min(1, dt * 4.5);
+        } else {
+            m.vy -= 40 * dt;
+        }
+
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+
+        if (m.life <= 0 || m.y < -80 || m.y > canvasHeight + 80 || m.x < -80 || m.x > canvasWidth + 80) {
+            homingMissiles.splice(i, 1);
+            continue;
+        }
+
+        /* hit check vs enemies */
+        var hit = false;
+        for (var e = 0; e < enemies.length; e++) {
+            var en = enemies[e];
+            if (!en || en.health <= 0) continue;
+            var er = Math.max(en.width, en.height) * 0.45;
+            if (Math.hypot(en.x - m.x, en.y - m.y) < er + 8) {
+                detonateMissile(m, i);
+                hit = true;
+                break;
+            }
+        }
+        if (hit) continue;
+    }
+}
+
+function detonateMissile(m, index) {
+    var R = m.blast || 40;
+    var baseDmg = m.damage || 2;
+    /* AoE: full damage at center, falloff to edge */
+    for (var e = enemies.length - 1; e >= 0; e--) {
+        var en = enemies[e];
+        if (!en) continue;
+        var d = Math.hypot(en.x - m.x, en.y - m.y);
+        if (d > R) continue;
+        var falloff = 1 - (d / R) * 0.65; /* edge still ~35% damage */
+        var dmg = Math.max(1, Math.floor(baseDmg * falloff));
+        en.health -= dmg;
+        if (en.health <= 0) {
+            destroyEnemy(e, true);
+        }
+    }
+    /* visual */
+    try {
+        for (var p = 0; p < 12; p++) {
+            var a = (Math.PI * 2 * p) / 12;
+            createParticle(m.x, m.y, {
+                vx: Math.cos(a) * (60 + Math.random() * 80),
+                vy: Math.sin(a) * (60 + Math.random() * 80),
+                life: 0.35 + Math.random() * 0.25,
+                size: 2 + Math.random() * 3,
+                color: p % 2 ? "#ff6b35" : "#fbbf24"
+            });
+        }
+    } catch (err) {}
+    game.screenShake = Math.max(game.screenShake || 0, 4);
+    if (index >= 0 && index < homingMissiles.length) {
+        homingMissiles.splice(index, 1);
+    }
+}
+
+function drawHomingMissiles() {
+    for (var i = 0; i < homingMissiles.length; i++) {
+        var m = homingMissiles[i];
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        var ang = Math.atan2(m.vy, m.vx) + Math.PI / 2;
+        ctx.rotate(ang);
+        /* body */
+        ctx.fillStyle = "#fbbf24";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "rgba(255,140,40,0.8)";
+        ctx.beginPath();
+        ctx.moveTo(0, -10);
+        ctx.lineTo(5, 8);
+        ctx.lineTo(0, 4);
+        ctx.lineTo(-5, 8);
+        ctx.closePath();
+        ctx.fill();
+        /* exhaust */
+        ctx.fillStyle = "rgba(255,100,40,0.85)";
+        ctx.beginPath();
+        ctx.moveTo(-3, 8);
+        ctx.lineTo(0, 14 + Math.sin(m.trail * 20) * 3);
+        ctx.lineTo(3, 8);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+function maybeFireMissiles(dt) {
+    var n = getMissileSalvoCount();
+    if (n <= 0) return;
+    if (!game.running || game.paused || game.gameOver) return;
+    if (!player.visible || player.canShoot === false) return;
+    player.missileCooldown = (player.missileCooldown || 0) - dt;
+    if (player.missileCooldown > 0) return;
+    if (!enemies.length) return;
+    /* Destroyer fires more often; others with upgrades a bit slower */
+    var cd = player.shipId === "destroyer" ? 3.2 : 4.5;
+    cd = Math.max(1.8, cd - (player.missileCountLv || 0) * 0.25);
+    player.missileCooldown = cd;
+    fireHomingMissiles();
+}
+
+/* Infinite mode: upgrade cards on waves ending in 9 */
+var missileCardPending = false;
+
+function isMissileCardWave(wave) {
+    wave = Math.floor(Number(wave) || 0);
+    return wave >= 9 && wave % 10 === 9;
+}
+
+function grantMissileUpgradeLevel(id) {
+    if (!window.SpaceStrikeUpgrades) return false;
+    var u = window.SpaceStrikeUpgrades.loadUpgrades();
+    var cat = window.SpaceStrikeUpgrades.catalog[id];
+    if (!cat) return false;
+    var lv = u[id] || 0;
+    if (lv >= cat.maxLevel) return false;
+    u[id] = lv + 1;
+    window.SpaceStrikeUpgrades.saveUpgrades(u);
+    applyOwnedUpgrades();
+    return true;
+}
+
+function showMissileCardPick() {
+    if (missileCardPending) return;
+    missileCardPending = true;
+    game.paused = true;
+    game.running = false;
+
+    var options = [
+        { id: "missileCount", title: "MISILES ×N", desc: "+1 misil por salva (máx 5)" },
+        { id: "missileDamage", title: "OJIVA", desc: "+ daño de misil / centro" },
+        { id: "missileBlast", title: "RADIO EXPLOSIÓN", desc: "+ área de daño AoE" }
+    ];
+    /* shuffle pick up to 2 available */
+    options = options.filter(function (o) {
+        var u = window.SpaceStrikeUpgrades ? window.SpaceStrikeUpgrades.loadUpgrades() : {};
+        var cat = window.SpaceStrikeUpgrades && window.SpaceStrikeUpgrades.catalog[o.id];
+        var lv = u[o.id] || 0;
+        return cat && lv < cat.maxLevel;
+    });
+    for (var i = options.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = options[i]; options[i] = options[j]; options[j] = t;
+    }
+    var picks = options.slice(0, Math.min(2, options.length));
+
+    var overlay = document.getElementById("missileCardOverlay");
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "missileCardOverlay";
+        overlay.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,8,20,0.82);padding:16px;";
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = "";
+    overlay.style.display = "flex";
+
+    var title = document.createElement("div");
+    title.textContent = "MEJORA DE MISILES · ELIGE 1";
+    title.style.cssText = "color:#fbbf24;font-size:14px;letter-spacing:2px;margin-bottom:14px;text-align:center;";
+    overlay.appendChild(title);
+
+    if (!picks.length) {
+        var done = document.createElement("button");
+        done.textContent = "TODO AL MÁXIMO · CONTINUAR";
+        done.style.cssText = "padding:12px 18px;border-radius:10px;border:1px solid #3b82f6;background:#0b1a30;color:#9ec9ff;";
+        done.onclick = function () { closeMissileCards(); };
+        overlay.appendChild(done);
+        return;
+    }
+
+    picks.forEach(function (opt) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.style.cssText = "width:min(320px,92vw);margin:6px;padding:14px 16px;border-radius:12px;border:1px solid rgba(251,191,36,0.45);background:linear-gradient(180deg,#1a2238,#0d1528);color:#e8eefc;text-align:left;cursor:pointer;";
+        btn.innerHTML = "<strong style=\"color:#fbbf24\">" + opt.title + "</strong><br><span style=\"font-size:12px;opacity:0.85\">" + opt.desc + "</span>";
+        btn.onclick = function () {
+            grantMissileUpgradeLevel(opt.id);
+            if (systemStatus) systemStatus.textContent = "MISIL · " + opt.title;
+            closeMissileCards();
+        };
+        overlay.appendChild(btn);
+    });
+}
+
+function closeMissileCards() {
+    var overlay = document.getElementById("missileCardOverlay");
+    if (overlay) overlay.style.display = "none";
+    missileCardPending = false;
+    game.paused = false;
+    game.running = true;
+}
+
 
 function attemptPlayerFire() {
 
@@ -4005,6 +4290,7 @@ function completeLevel() {
         game.level = finishedWave + 1;
         enemies.length = 0;
         enemyProjectiles.length = 0;
+        if (typeof homingMissiles !== "undefined") homingMissiles.length = 0;
 
         setupWave(game.level);
         saveProgress();
@@ -4017,6 +4303,13 @@ function completeLevel() {
                     systemStatus.textContent = "SYSTEM ONLINE";
                 }
             }, 1500);
+        }
+
+        /* Infinito: tarjetas de misil al completar oleadas 9, 19, 29... */
+        if (typeof isMissileCardWave === "function" && isMissileCardWave(finishedWave)) {
+            window.setTimeout(function () {
+                if (typeof showMissileCardPick === "function") showMissileCardPick();
+            }, 400);
         }
 
         return;
@@ -4859,6 +5152,13 @@ function update(deltaTime) {
     updatePlayerProjectiles(
         deltaTime
     );
+
+    if (typeof updateHomingMissiles === "function") {
+        updateHomingMissiles(deltaTime);
+    }
+    if (typeof maybeFireMissiles === "function") {
+        maybeFireMissiles(deltaTime);
+    }
 
     updateEnemyProjectiles(
         deltaTime
