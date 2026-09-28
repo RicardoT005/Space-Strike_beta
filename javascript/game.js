@@ -3604,7 +3604,7 @@ function getWaveKillTarget(wave) {
 
 /** How many to spawn this wave (same as kill target for normal waves) */
 function getWaveSpawnQuota(wave) {
-    /* Solo 1 si es oleada de jefe real (aventura x10 / infinito x50) */
+    /* Solo 1 enemigo (el jefe) en oleadas de boss */
     if (isBossWave(wave)) {
         return 1;
     }
@@ -3628,11 +3628,8 @@ function getBossHealth(wave) {
 
 function isBossWave(wave) {
     wave = Math.floor(Number(wave) || 0);
-    /* Aventura: jefe cada 10 sectores · Infinito: jefe cada 50 oleadas */
-    if (game.mode === "adventure") {
-        return wave >= 10 && wave % 10 === 0;
-    }
-    return wave >= 50 && wave % 50 === 0;
+    /* Aventura e Infinito: jefe Overlord cada 10 oleadas/sectores */
+    return wave >= 10 && wave % 10 === 0;
 }
 
 function setupWave(wave) {

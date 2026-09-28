@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v275",
+        title: "PARCHE 2.7.5",
+        body: "Jefe Overlord cada 10 oleadas en Infinito y Aventura (para pruebas). Cuota de spawn alineada con el jefe."
+    },
+    {
         id: "v272",
         title: "PARCHE 2.7.2",
         body: "Destructor con textura T-Wind. Nebula: habilidades FASE, TORMENTA LÁSER y recarga de ESCUDO."
