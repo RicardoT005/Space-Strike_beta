@@ -1753,8 +1753,9 @@ function drawPlayer() {
             sh = player.height * 2.15;
         }
         if (sidTex === "destroyer") {
-            sw = player.width * 1.85;
-            sh = player.height * 2.4;
+            /* T-Wind: nose up, wide wings (texture landscape) */
+            sw = player.width * 2.35;
+            sh = player.height * 1.55;
         }
         ctx.drawImage(spr, -sw / 2, -sh / 2, sw, sh);
         if (player.specialShield > 0) {
