@@ -2295,29 +2295,35 @@ function detonateMissile(m, index) {
 }
 
 function drawHomingMissiles() {
+    if (!homingMissiles || !homingMissiles.length) return;
     for (var i = 0; i < homingMissiles.length; i++) {
         var m = homingMissiles[i];
         ctx.save();
         ctx.translate(m.x, m.y);
         var ang = Math.atan2(m.vy, m.vx) + Math.PI / 2;
         ctx.rotate(ang);
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = "rgba(255,120,30,0.95)";
+        /* glow core */
+        ctx.fillStyle = "#ff9f1a";
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
         /* body */
         ctx.fillStyle = "#fbbf24";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(255,140,40,0.8)";
         ctx.beginPath();
-        ctx.moveTo(0, -10);
-        ctx.lineTo(5, 8);
-        ctx.lineTo(0, 4);
-        ctx.lineTo(-5, 8);
+        ctx.moveTo(0, -12);
+        ctx.lineTo(6, 9);
+        ctx.lineTo(0, 5);
+        ctx.lineTo(-6, 9);
         ctx.closePath();
         ctx.fill();
         /* exhaust */
-        ctx.fillStyle = "rgba(255,100,40,0.85)";
+        ctx.fillStyle = "rgba(255,80,30,0.95)";
         ctx.beginPath();
-        ctx.moveTo(-3, 8);
-        ctx.lineTo(0, 14 + Math.sin(m.trail * 20) * 3);
-        ctx.lineTo(3, 8);
+        ctx.moveTo(-4, 9);
+        ctx.lineTo(0, 16 + Math.sin((m.trail || 0) * 22) * 4);
+        ctx.lineTo(4, 9);
         ctx.fill();
         ctx.restore();
     }
@@ -5055,6 +5061,9 @@ function render() {
 
 
     drawPlayerProjectiles();
+    if (typeof drawHomingMissiles === "function") {
+        drawHomingMissiles();
+    }
 
     drawEnemyProjectiles();
 
