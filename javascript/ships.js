@@ -341,14 +341,15 @@ function grantShip(id, opts) {
 function buyShip(id) {
     var ship = SHIP_CATALOG[id];
     if (!ship) return { ok: false, reason: "unknown" };
-    if (ship.special || ship.codeOnly) {
-        return { ok: false, reason: "code_only" };
-    }
+    /* Premium unlock first (even if also marked special by mistake) */
     if (ship.premium) {
         var prem = window.SpaceStrikePremium && window.SpaceStrikePremium.isPremium && window.SpaceStrikePremium.isPremium();
         if (!prem) return { ok: false, reason: "premium" };
         if (ownsShip(id)) return { ok: false, reason: "owned" };
         return grantShip(id);
+    }
+    if (ship.special || ship.codeOnly) {
+        return { ok: false, reason: "code_only" };
     }
     if (ship.free || ownsShip(id)) return { ok: false, reason: "owned" };
 

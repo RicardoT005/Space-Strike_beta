@@ -33,12 +33,12 @@
 
     function renderShipCard(S, id, ship, owned, equipped, coins) {
         const isEq = equipped === id;
-        const isSpecial = !!(ship.special || ship.codeOnly);
+        const isSpecial = !!(ship.special || ship.codeOnly) && !ship.premium;
         /* Owned if in list OR currently equipped (heals UI desync) */
         const isOwned = owned.indexOf(id) >= 0 || isEq;
 
         const card = document.createElement("article");
-        card.className = "shop-card ship-card" + (isEq ? " equipped" : "") + (isSpecial ? " special-ship" : "");
+        card.className = "shop-card ship-card" + (isEq ? " equipped" : "") + (isSpecial ? " special-ship" : "") + (ship.premium ? " premium-ship" : "");
         card.innerHTML =
             "<h3>" + ship.name + "</h3>" +
             "<div class=\"shop-meta\">VEL " + ship.speed + " · CAD " + ship.fireRate + " · HULL " + ship.maxHealth +
@@ -48,6 +48,10 @@
 
         const btn = document.createElement("button");
         btn.type = "button";
+        /* Premium always checked before special/code locks */
+        var isPremShip = !!ship.premium;
+        var hasPrem = window.SpaceStrikePremium && window.SpaceStrikePremium.isPremium && window.SpaceStrikePremium.isPremium();
+
         if (isEq) {
             btn.textContent = "EQUIPADA";
             btn.disabled = true;
@@ -58,18 +62,28 @@
                 S.setEquipped(id);
                 renderShips();
             });
-        } else if (ship.premium) {
-            /* Premium ships (Phoenix, Void, VT-03): unlock if premium active */
-            var prem = window.SpaceStrikePremium && window.SpaceStrikePremium.isPremium && window.SpaceStrikePremium.isPremium();
-            if (prem) {
+        } else if (isPremShip) {
+            if (hasPrem) {
                 btn.textContent = "DESBLOQUEAR ★";
+                btn.disabled = false;
+                btn.className = "";
                 btn.addEventListener("click", function () {
                     const res = S.buy(id);
-                    if (res.ok) {
+                    console.log("[Shop] premium buy", id, res);
+                    if (res && res.ok) {
                         S.setEquipped(id);
                         renderAll();
-                    } else {
-                        console.warn("[Shop] buy premium fail", res);
+                    } else if (res && res.reason === "premium") {
+                        btn.textContent = "SOLO PREMIUM ★";
+                    } else if (res && res.reason === "code_only") {
+                        /* Fallback: grant directly if premium active */
+                        if (S.grant) {
+                            var g = S.grant(id);
+                            if (g && g.ok) {
+                                S.setEquipped(id);
+                                renderAll();
+                            }
+                        }
                     }
                 });
             } else {
@@ -156,8 +170,14 @@
         Object.keys(S.catalog).forEach(function (id) {
             var ship = S.catalog[id];
             if (!ship) return;
-            if (ship.special || ship.codeOnly) specialIds.push(id);
-            else normalIds.push(id);
+            /* Premium ships go in the normal list (DESBLOQUEAR ★ / EQUIPAR) */
+            if (ship.premium && !ship.codeOnly) {
+                normalIds.push(id);
+            } else if (ship.special || ship.codeOnly) {
+                specialIds.push(id);
+            } else {
+                normalIds.push(id);
+            }
         });
 
         /* Force NEBULA into special list if missing from catalog flags */
