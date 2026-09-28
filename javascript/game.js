@@ -4046,7 +4046,19 @@ function updateLivesUI() {
         lifeElements = livesElement.querySelectorAll(".life");
     }
 
+    var useBadge = !!(player.rpdShip || player.shipId === "rpd");
+    if (useBadge) {
+        livesElement.classList.add("rpd-hull");
+    } else {
+        livesElement.classList.remove("rpd-hull");
+    }
+
     lifeElements.forEach(function (life, index) {
+        if (useBadge) {
+            life.classList.add("badge-life");
+        } else {
+            life.classList.remove("badge-life");
+        }
         if (index < player.health) {
             life.classList.add("active");
         } else {

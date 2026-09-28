@@ -30,7 +30,7 @@ service cloud.firestore {
       allow read: if true;
       // Solo admin genera códigos (siempre un uso)
       allow create: if request.auth != null
-        && request.auth.token.email == 'ricardotorresgalvez005@gmail.com';
+        && request.auth.token.email in ['ricardotorresgalvez005@gmail.com', 'yocepliliamurguiacuriel@gmail.com'];
       allow update: if resource.data.used == false
         && request.resource.data.used == true;
       allow delete: if false;
@@ -39,7 +39,7 @@ service cloud.firestore {
     match /rewardCodes/{code} {
       allow read: if true;
       allow create: if request.auth != null
-        && request.auth.token.email == 'ricardotorresgalvez005@gmail.com';
+        && request.auth.token.email in ['ricardotorresgalvez005@gmail.com', 'yocepliliamurguiacuriel@gmail.com'];
       allow update: if resource.data.usesLeft is number
         && request.resource.data.usesLeft is number
         && request.resource.data.usesLeft == resource.data.usesLeft - 1

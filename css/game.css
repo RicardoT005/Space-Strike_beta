@@ -308,6 +308,38 @@ body {
         grayscale(1);
 }
 
+/* R.P.D. police badge hull icons */
+.lives-container.rpd-hull {
+    gap: 5px;
+    align-items: center;
+}
+
+.life.badge-life {
+    width: 22px;
+    height: 26px;
+    border: none;
+    clip-path: none;
+    border-radius: 0;
+    background:
+        url("../img/ui/rpd-badge.png") center / contain no-repeat;
+    box-shadow: none;
+    filter: drop-shadow(0 0 4px rgba(255, 200, 80, 0.45));
+}
+
+.life.badge-life.active {
+    background:
+        url("../img/ui/rpd-badge.png") center / contain no-repeat;
+    box-shadow: none;
+    filter: drop-shadow(0 0 6px rgba(255, 210, 90, 0.75));
+    opacity: 1;
+}
+
+.life.badge-life:not(.active) {
+    opacity: 0.22;
+    filter: grayscale(1) brightness(0.55);
+}
+
+
 
 /* ================================================================
    LEVEL PROGRESS

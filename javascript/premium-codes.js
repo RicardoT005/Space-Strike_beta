@@ -1,7 +1,10 @@
 /* One-time premium codes via Firestore — admin generate, always single-use */
 (function () {
     var COL = "premiumCodes";
-    var ADMIN_EMAIL = "ricardotorresgalvez005@gmail.com";
+    var ADMIN_EMAILS = [
+        "ricardotorresgalvez005@gmail.com",
+        "yocepliliamurguiacuriel@gmail.com"
+    ];
 
     function getDb() {
         if (window.firebase && firebase.apps && firebase.apps.length) {
@@ -34,7 +37,11 @@
     }
 
     function isAdmin() {
-        return getAdminEmail() === ADMIN_EMAIL.toLowerCase();
+        var email = getAdminEmail();
+        if (!email) return false;
+        return ADMIN_EMAILS.some(function (a) {
+            return email === String(a).toLowerCase().trim();
+        });
     }
 
     function normalizeCode(code) {
@@ -242,6 +249,7 @@
         setUserPremium: setUserPremium,
         isAdmin: isAdmin,
         getAdminEmail: getAdminEmail,
-        ADMIN_EMAIL: ADMIN_EMAIL
+        ADMIN_EMAILS: ADMIN_EMAILS,
+        ADMIN_EMAIL: ADMIN_EMAILS[0]
     };
 })();
