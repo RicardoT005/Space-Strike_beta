@@ -7,6 +7,7 @@
     "use strict";
 
     var list = [];
+    var floaters = [];
 
     function rnd(min, max) {
         return min + Math.random() * (max - min);
@@ -95,6 +96,7 @@
     }
 
     function update(dt) {
+        updateFloaters(dt);
         for (var i = list.length - 1; i >= 0; i--) {
             var p = list[i];
             p.life -= dt;
@@ -120,10 +122,53 @@
             ctx.fill();
         }
         ctx.globalAlpha = 1;
+        drawFloaters(ctx);
     }
 
     function clear() {
         list.length = 0;
+        floaters.length = 0;
+    }
+
+    function floatText(x, y, text, color) {
+        floaters.push({
+            x: x,
+            y: y,
+            text: String(text),
+            color: color || "#bdeaff",
+            life: 0.7,
+            maxLife: 0.7,
+            vy: -48
+        });
+    }
+
+    function updateFloaters(dt) {
+        for (var i = floaters.length - 1; i >= 0; i--) {
+            var f = floaters[i];
+            f.life -= dt;
+            f.y += f.vy * dt;
+            if (f.life <= 0) floaters.splice(i, 1);
+        }
+    }
+
+    function drawFloaters(ctx) {
+        if (!ctx) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 14px Segoe UI, Arial, sans-serif";
+        for (var i = 0; i < floaters.length; i++) {
+            var f = floaters[i];
+            var a = f.maxLife > 0 ? f.life / f.maxLife : 0;
+            ctx.globalAlpha = Math.max(0, Math.min(1, a));
+            ctx.fillStyle = f.color;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = f.color;
+            ctx.fillText(f.text, f.x, f.y);
+        }
+        ctx.restore();
+        ctx.globalAlpha = 1;
+        drawFloaters(ctx);
     }
 
     function getList() {
@@ -138,6 +183,7 @@
         update: update,
         draw: draw,
         clear: clear,
-        getList: getList
+        getList: getList,
+        floatText: floatText
     };
 })(typeof window !== "undefined" ? window : this);

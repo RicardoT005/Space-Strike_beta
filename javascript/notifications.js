@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v298",
+        title: "v2.9.8 — FEEDBACK COMBATE",
+        body: "Números de daño flotantes al impactar enemigos y misiles. Más respuesta visual en combate."
+    },
+    {
         id: "v297",
         title: "v2.9.7 — CRÉDITOS",
         body: "Créditos actualizados: Ricardo Torres · Co-creadora Fantasmita (Nebula) · León (R.P.D. LEON)."

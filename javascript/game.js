@@ -2275,6 +2275,9 @@ function detonateMissile(m, index) {
         var falloff = 1 - (d / R) * 0.65; /* edge still ~35% damage */
         var dmg = Math.max(1, Math.floor(baseDmg * falloff));
         en.health -= dmg;
+        if (window.SpaceStrikeParticles && window.SpaceStrikeParticles.floatText) {
+            window.SpaceStrikeParticles.floatText(en.x, en.y - 12, "-" + dmg, "#ff9f1a");
+        }
         if (en.health <= 0) {
             destroyEnemy(e, true);
         }
@@ -3688,10 +3691,19 @@ function handleProjectileCollisions() {
                 )
             ) {
 
-                enemy.health -=
-                    projectile.damage || 1;
+                var dmgAmt = projectile.damage || 1;
+                enemy.health -= dmgAmt;
 
                 game.hitsLanded = (game.hitsLanded || 0) + 1;
+
+                if (window.SpaceStrikeParticles && window.SpaceStrikeParticles.floatText) {
+                    window.SpaceStrikeParticles.floatText(
+                        enemy.x,
+                        enemy.y - (enemy.height || 20) * 0.4,
+                        "-" + dmgAmt,
+                        projectile.laser ? "#ff3b4a" : "#bdeaff"
+                    );
+                }
 
                 createHitParticles(
                     projectile.x,
