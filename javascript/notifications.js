@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v294",
+        title: "v2.9.4 — PARTÍCULAS + AUDIO",
+        body: "Sistemas de partículas y audio separados de game.js. Mismo comportamiento, arquitectura más limpia para el remaster 3.0."
+    },
+    {
         id: "v293",
         title: "v2.9.3 — SHOP MANAGER + NEBULA",
         body: "Tienda con flujo seguro (ShopManager). Nueva textura NEBULA. Progreso del remaster 3.0."

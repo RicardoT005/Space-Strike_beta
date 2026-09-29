@@ -610,6 +610,10 @@ function playTone(freq, duration, type, volume) {
 
 
 function playSound(name) {
+    if (window.SpaceStrikeAudio && typeof window.SpaceStrikeAudio.play === "function") {
+        window.SpaceStrikeAudio.play(name);
+        return;
+    }
 
     if (!gameSettings.sound) {
         return;
@@ -4602,6 +4606,10 @@ function createParticle(
     y,
     options = {}
 ) {
+    if (window.SpaceStrikeParticles && typeof window.SpaceStrikeParticles.create === "function") {
+        window.SpaceStrikeParticles.create(x, y, options);
+        return;
+    }
 
     if (particles.length >= PERF.maxParticles) {
         particles.splice(0, Math.ceil(PERF.maxParticles * 0.25));
@@ -4654,6 +4662,10 @@ function createExplosion(
     y,
     type = "basic"
 ) {
+    if (window.SpaceStrikeParticles && typeof window.SpaceStrikeParticles.explosion === "function") {
+        window.SpaceStrikeParticles.explosion(x, y, type);
+        return;
+    }
 
     let count = Math.floor(14 * PERF.explosionScale);
 
@@ -4744,6 +4756,10 @@ function createHitParticles(
     x,
     y
 ) {
+    if (window.SpaceStrikeParticles && typeof window.SpaceStrikeParticles.hit === "function") {
+        window.SpaceStrikeParticles.hit(x, y);
+        return;
+    }
 
     for (
         let i = 0;
@@ -4792,6 +4808,10 @@ function createMuzzleParticles(
     x,
     y
 ) {
+    if (window.SpaceStrikeParticles && typeof window.SpaceStrikeParticles.muzzle === "function") {
+        window.SpaceStrikeParticles.muzzle(x, y);
+        return;
+    }
 
     for (
         let i = 0;
@@ -4837,6 +4857,10 @@ function createMuzzleParticles(
 
 
 function updateParticles(deltaTime) {
+    if (window.SpaceStrikeParticles && typeof window.SpaceStrikeParticles.update === "function") {
+        window.SpaceStrikeParticles.update(deltaTime);
+        return;
+    }
 
     for (
         let i =
@@ -4888,6 +4912,10 @@ function updateParticles(deltaTime) {
 
 
 function drawParticles() {
+    if (window.SpaceStrikeParticles && typeof window.SpaceStrikeParticles.draw === "function") {
+        window.SpaceStrikeParticles.draw(ctx);
+        return;
+    }
 
     for (
         const particle

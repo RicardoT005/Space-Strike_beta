@@ -1,20 +1,13 @@
 SPACE STRIKE — Remaster 3.0 progress
 =====================================
+BACKUP: SPACE_STRIKE_v2.9.1-STABLE.zip
 
-BACKUP STABLE: SPACE_STRIKE_v2.9.1-STABLE.zip
-
-v2.9.2 — GameState + PlayerData + SaveManager
-v2.9.3 — ShopManager + Nebula texture refresh
+v2.9.2 GameState + PlayerData + SaveManager
+v2.9.3 ShopManager + Nebula texture
+v2.9.4 ParticleSystem + AudioManager
 --------------------------------------
-  javascript/managers/shop-manager.js
-    purchaseShip / equipShip / purchaseUpgrade
-    Flow: exist → owned? → premium/coins → charge → grant → save → confirm
+  javascript/systems/particles.js  → SpaceStrikeParticles
+  javascript/systems/audio.js      → SpaceStrikeAudio
+  game.js delegates to modules (legacy fallback kept)
 
-  Nebula sprite replaced:
-    img/texturas-especiales/nave-especial.png
-    img/ships/nebula.png
-
-NEXT:
-  v2.9.4 particles/audio stubs extract
-  progressive game.js split
-  visual palette
+NEXT: visual palette / HUD remaster OR extract enemies/waves
