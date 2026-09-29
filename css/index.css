@@ -832,3 +832,13 @@ body {
 .menu {
     animation: ss-fade-in 0.5s var(--ss-ease, ease) both;
 }
+
+
+/* remaster transition */
+#transition {
+    transition: opacity 0.4s var(--ss-ease, ease);
+}
+#transition.active {
+    opacity: 1;
+    pointer-events: all;
+}

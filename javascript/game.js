@@ -3815,6 +3815,23 @@ function destroyEnemy(
 
         addScore(points);
 
+        if (window.SpaceStrikeParticles && window.SpaceStrikeParticles.floatText) {
+            window.SpaceStrikeParticles.floatText(
+                enemy.x,
+                enemy.y - 18,
+                "+" + points,
+                game.combo >= 10 ? "#fbbf24" : "#3dff9a"
+            );
+            if (game.combo === 5 || game.combo === 10 || game.combo === 20) {
+                window.SpaceStrikeParticles.floatText(
+                    enemy.x,
+                    enemy.y - 36,
+                    "COMBO x" + (game.combo >= 20 ? 5 : game.combo >= 10 ? 3 : 2),
+                    "#ff9f1a"
+                );
+            }
+        }
+
         game.waveKills++;
         updateWaveProgressUI();
         checkWaveClear();

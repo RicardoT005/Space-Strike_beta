@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v2100",
+        title: "v2.10.0 — RECOMPENSAS VISUALES",
+        body: "Al destruir enemigos ves +puntos flotantes y avisos de COMBO. Transiciones de menú más suaves."
+    },
+    {
         id: "v299",
         title: "v2.9.9 — FIX RENDER",
         body: "Corregido crash de partículas (stack overflow) que dejaba la pantalla sin naves ni enemigos."
