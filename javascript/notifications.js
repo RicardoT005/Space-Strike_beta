@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v297",
+        title: "v2.9.7 — CRÉDITOS",
+        body: "Créditos actualizados: Ricardo Torres · Co-creadora Fantasmita (Nebula) · León (R.P.D. LEON)."
+    },
+    {
         id: "v296",
         title: "v2.9.6 — CRÉDITOS + ANIM",
         body: "Nueva pantalla de créditos del equipo. AnimationManager para menú y feedback de UI."

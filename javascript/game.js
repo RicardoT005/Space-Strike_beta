@@ -3919,6 +3919,9 @@ function damagePlayer() {
     );
 
     playSound("damage");
+    if (window.SpaceStrikeAnim && window.SpaceStrikeAnim.flashScreen) {
+        window.SpaceStrikeAnim.flashScreen("rgba(255,77,109,0.22)", 160);
+    };
     triggerVibration([40, 30, 60]);
 
     updateLivesUI();
