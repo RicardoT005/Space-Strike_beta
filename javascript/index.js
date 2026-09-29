@@ -506,6 +506,23 @@ function initializeResizeHandler() {
                     () => {
 
                         createStars();
+    /* v3 rank badge */
+    (function showRank() {
+        var snap = window.SpaceStrikeProgression && window.SpaceStrikeProgression.getSnapshot
+            ? window.SpaceStrikeProgression.getSnapshot()
+            : null;
+        if (!snap) return;
+        var host = document.getElementById("pilotLabel");
+        if (!host) return;
+        var badge = document.getElementById("rankBadge");
+        if (!badge) {
+            badge = document.createElement("div");
+            badge.id = "rankBadge";
+            badge.className = "rank-badge";
+            host.parentNode.insertBefore(badge, host.nextSibling);
+        }
+        badge.textContent = "RANGO " + snap.rank.name + " · " + snap.xp + " XP";
+    })();
 
                     },
                     200
@@ -634,6 +651,23 @@ function showNotices() {
 function initializeMenu() {
 
     createStars();
+    /* v3 rank badge */
+    (function showRank() {
+        var snap = window.SpaceStrikeProgression && window.SpaceStrikeProgression.getSnapshot
+            ? window.SpaceStrikeProgression.getSnapshot()
+            : null;
+        if (!snap) return;
+        var host = document.getElementById("pilotLabel");
+        if (!host) return;
+        var badge = document.getElementById("rankBadge");
+        if (!badge) {
+            badge = document.createElement("div");
+            badge.id = "rankBadge";
+            badge.className = "rank-badge";
+            host.parentNode.insertBefore(badge, host.nextSibling);
+        }
+        badge.textContent = "RANGO " + snap.rank.name + " · " + snap.xp + " XP";
+    })();
 
     initializeButtons();
 

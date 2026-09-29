@@ -2651,7 +2651,9 @@ function drawPlayerProjectiles() {
    ENEMY TYPES
 ================================================================ */
 
-const enemyTypes = {
+const enemyTypes = (window.SpaceStrikeEnemyData && window.SpaceStrikeEnemyData.types)
+    ? window.SpaceStrikeEnemyData.types
+    : {
 
     basic: {
 
@@ -3815,6 +3817,14 @@ function destroyEnemy(
 
         addScore(points);
 
+        if (window.SpaceStrikeProgression) {
+            var xpk = window.SpaceStrikeProgression.xpForKill(enemy);
+            var xr = window.SpaceStrikeProgression.addXP(xpk, "kill");
+            if (xr.rankUp && systemStatus) {
+                systemStatus.textContent = "RANGO · " + xr.rank.name;
+            }
+        }
+
         if (window.SpaceStrikeParticles && window.SpaceStrikeParticles.floatText) {
             window.SpaceStrikeParticles.floatText(
                 enemy.x,
@@ -4277,6 +4287,9 @@ function spawnBossForWave(wave) {
     if (systemStatus) {
         systemStatus.textContent = "⚠ JEFE OVERLORD · OLEADA " + wave;
     }
+    if (window.SpaceStrikeBossUI && window.SpaceStrikeBossUI.announce) {
+        window.SpaceStrikeBossUI.announce("OVERLORD", "OLEADA " + wave, 3000);
+    }
 }
 
 function updateBossPhases() {
@@ -4328,6 +4341,12 @@ function completeLevel() {
         const finishedWave = game.level;
         const waveCoins = 10 + Math.floor(finishedWave * 2.5);
         grantLevelCoins(waveCoins);
+        if (window.SpaceStrikeProgression) {
+            window.SpaceStrikeProgression.addXP(
+                window.SpaceStrikeProgression.xpForWave(finishedWave),
+                "wave"
+            );
+        }
 
         game.level = finishedWave + 1;
         enemies.length = 0;
@@ -4381,6 +4400,13 @@ function completeLevel() {
     }
 
     saveAdventureStars(game.adventureLevel, stars);
+
+    if (window.SpaceStrikeProgression) {
+        window.SpaceStrikeProgression.addXP(
+            window.SpaceStrikeProgression.xpForAdventureLevel(game.adventureLevel, stars),
+            "adventure"
+        );
+    }
 
     const coinReward = def && def.coins ? def.coins : (30 + game.adventureLevel * 8);
     const totalCoins = grantLevelCoins(coinReward);

@@ -1944,3 +1944,80 @@ body {
 .launch-panel {
     animation: ss-fade-in 0.4s var(--ss-ease, ease) both;
 }
+
+
+/* ===== v3.0 Boss banner + HUD remaster ===== */
+.boss-banner {
+    position: fixed;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 80;
+    text-align: center;
+    pointer-events: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 107, 53, 0.55);
+    background: rgba(20, 6, 4, 0.88);
+    box-shadow: 0 0 40px rgba(255, 107, 53, 0.35);
+}
+.boss-banner.hidden { display: none; }
+.boss-banner-title {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: #ff6b35;
+}
+.boss-banner-name {
+    font-size: clamp(22px, 6vw, 36px);
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: #ffe0c8;
+    text-shadow: 0 0 20px rgba(255, 107, 53, 0.7);
+}
+.boss-banner-sub {
+    margin-top: 6px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: rgba(255, 200, 160, 0.7);
+}
+.boss-banner.boss-in {
+    animation: bossIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.boss-banner.boss-out {
+    animation: bossOut 0.4s ease both;
+}
+@keyframes bossIn {
+    from { opacity: 0; transform: translateX(-50%) scale(0.85) translateY(-12px); }
+    to { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+}
+@keyframes bossOut {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateX(-50%) scale(0.9); }
+}
+
+.hud-block {
+    background: var(--ss-bg-panel, rgba(8, 14, 28, 0.82)) !important;
+    border: 1px solid var(--ss-border, rgba(100, 160, 255, 0.25)) !important;
+    border-radius: var(--ss-radius-sm, 8px) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+.hud-label {
+    color: var(--ss-text-dim, rgba(180, 210, 240, 0.65)) !important;
+    letter-spacing: 0.12em;
+}
+.hud-value {
+    color: var(--ss-energy, #7ef0ff) !important;
+    text-shadow: 0 0 12px rgba(126, 240, 255, 0.35);
+}
+.hud-lives .hud-label {
+    color: var(--ss-danger, #ff4d6d) !important;
+}
+#progressTrack, .progress-track {
+    background: rgba(0, 0, 0, 0.45) !important;
+    border-radius: 999px;
+    overflow: hidden;
+}
+#progressBar, .progress-bar {
+    background: linear-gradient(90deg, var(--ss-primary, #3db4ff), var(--ss-secondary, #8b7cff)) !important;
+    box-shadow: 0 0 12px var(--ss-primary-glow, rgba(61, 180, 255, 0.4));
+}

@@ -842,3 +842,11 @@ body {
     opacity: 1;
     pointer-events: all;
 }
+
+.rank-badge {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    color: var(--ss-premium, #fbbf24);
+    text-shadow: 0 0 12px var(--ss-premium-glow, rgba(251, 191, 36, 0.35));
+}

@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v300",
+        title: "SPACE STRIKE v3.0.0 REMASTER",
+        body: "HUD renovado, XP y rangos, banner de jefes, datos de enemigos centralizados. El combate gana XP; el menú muestra tu rango."
+    },
+    {
         id: "v2101",
         title: "v2.10.1 — COMBO ANIMADO",
         body: "Combo con animación al aparecer, al subir de nivel (x2→x3→x5) y al desaparecer. Sistema separado de game.js."

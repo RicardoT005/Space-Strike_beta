@@ -190,7 +190,10 @@
             pilotName: getPilotName(),
             settings: safeParse(localStorage.getItem(KEYS.settings), {}),
             adventureStars: safeParse(localStorage.getItem(KEYS.adventureStars), {}),
-            achievements: safeParse(localStorage.getItem(KEYS.achievements), {})
+            achievements: safeParse(localStorage.getItem(KEYS.achievements), {}),
+            xp: (function () {
+                try { return Number(localStorage.getItem("spaceStrikeXP") || 0) || 0; } catch (e) { return 0; }
+            })()
         };
     }
 
