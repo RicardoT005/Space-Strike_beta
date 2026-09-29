@@ -4,6 +4,16 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v302",
+        title: "v3.0.2 — ASALTO + TANQUE",
+        body: "Nuevas texturas: ASALTO (Rogue) y TANQUE (Parasite). Compra en tienda y equípalas."
+    },
+    {
+        id: "v301",
+        title: "v3.0.1 — INTERCEPTOR JF-29",
+        body: "La nave inicial INTERCEPTOR usa el diseño JF-29 (textura real). Equípala y entra a cualquier modo."
+    },
+    {
         id: "v300",
         title: "SPACE STRIKE v3.0.0 REMASTER",
         body: "HUD renovado, XP y rangos, banner de jefes, datos de enemigos centralizados. El combate gana XP; el menú muestra tu rango."

@@ -943,6 +943,22 @@ function ensureVt03Sprites() {
     ]);
 }
 /* Try several relative paths (localhost / netlify / nested) */
+loadShipSprite("assault", [
+    "../img/ships/assault.png",
+    "../img/texturas-especiales/assault.png",
+    "img/ships/assault.png"
+]);
+loadShipSprite("tank", [
+    "../img/ships/tank.png",
+    "../img/texturas-especiales/tank.png",
+    "img/ships/tank.png"
+]);
+loadShipSprite("interceptor", [
+    "../img/ships/interceptor.png",
+    "../img/texturas-especiales/interceptor.png",
+    "img/ships/interceptor.png",
+    "img/texturas-especiales/interceptor.png"
+]);
 loadShipSprite("destroyer", [
     "../img/ships/t-wind.png",
     "img/ships/t-wind.png",
@@ -1350,6 +1366,34 @@ function applyOwnedUpgrades() {
             player.shipId = localStorage.getItem("spaceStrikeEquippedShip") || player.shipId || "interceptor";
         }
     } catch (e2) {}
+    if (player.shipId === "interceptor" || !player.shipId) {
+        if (typeof loadShipSprite === "function") {
+            loadShipSprite("interceptor", [
+                "../img/ships/interceptor.png",
+                "../img/texturas-especiales/interceptor.png",
+                "img/ships/interceptor.png",
+                "img/texturas-especiales/interceptor.png"
+            ]);
+        }
+    }
+    if (player.shipId === "assault") {
+        if (typeof loadShipSprite === "function") {
+            loadShipSprite("assault", [
+                "../img/ships/assault.png",
+                "../img/texturas-especiales/assault.png",
+                "img/ships/assault.png"
+            ]);
+        }
+    }
+    if (player.shipId === "tank") {
+        if (typeof loadShipSprite === "function") {
+            loadShipSprite("tank", [
+                "../img/ships/tank.png",
+                "../img/texturas-especiales/tank.png",
+                "img/ships/tank.png"
+            ]);
+        }
+    }
     if (player.shipId === "destroyer") {
         if (typeof loadShipSprite === "function") {
             loadShipSprite("destroyer", [
@@ -1939,6 +1983,18 @@ function drawPlayer() {
         if (sidTex === "rpd") {
             sw = player.width * 1.7;
             sh = player.height * 2.15;
+        }
+        if (sidTex === "interceptor") {
+            sw = player.width * 1.85;
+            sh = player.height * 1.55;
+        }
+        if (sidTex === "assault") {
+            sw = player.width * 1.9;
+            sh = player.height * 1.7;
+        }
+        if (sidTex === "tank") {
+            sw = player.width * 1.75;
+            sh = player.height * 2.0;
         }
         if (sidTex === "destroyer") {
             sw = player.width * 2.0;

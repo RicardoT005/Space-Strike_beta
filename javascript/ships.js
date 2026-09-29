@@ -8,41 +8,44 @@ const SHIP_CATALOG = {
     interceptor: {
         id: "interceptor",
         name: "INTERCEPTOR",
-        desc: "Rápida y ágil. Casco ligero.",
+        desc: "JF-29 de serie. Rápida, ágil y lista para combate.",
         cost: 0,
         free: true,
         speed: 430,
         fireRate: 150,
         maxHealth: 3,
         damageBonus: 0,
-        color: "#6ebcf0",
-        accent: "#e9f7ff"
+        color: "#8a9aab",
+        accent: "#e8eef5",
+        texture: "interceptor"
     },
     assault: {
         id: "assault",
         name: "ASALTO",
-        desc: "Equilibrada. Más daño base.",
+        desc: "Rogue fighter. Equilibrada, más daño base.",
         cost: 400,
         free: false,
         speed: 390,
         fireRate: 155,
         maxHealth: 3,
         damageBonus: 1,
-        color: "#f0a060",
-        accent: "#ffe0c0"
+        color: "#1a2332",
+        accent: "#3db4ff",
+        texture: "assault"
     },
     tank: {
         id: "tank",
         name: "TANQUE",
-        desc: "Lenta pero muy resistente.",
+        desc: "Parasite armor. Lenta pero muy resistente.",
         cost: 500,
         free: false,
         speed: 320,
         fireRate: 180,
         maxHealth: 5,
         damageBonus: 0,
-        color: "#7ecf9a",
-        accent: "#d0ffe0"
+        color: "#c8d0d8",
+        accent: "#e8eef5",
+        texture: "tank"
     },
     spectre: {
         id: "spectre",
