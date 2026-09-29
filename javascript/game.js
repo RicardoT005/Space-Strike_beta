@@ -4468,6 +4468,10 @@ function advanceToNextLevel() {
 ================================================================ */
 
 function updateComboUI() {
+    if (window.SpaceStrikeCombo && typeof window.SpaceStrikeCombo.update === "function") {
+        window.SpaceStrikeCombo.update(game.combo || 0);
+        return;
+    }
     const el = document.getElementById("comboDisplay");
     if (!el) return;
     if (game.combo >= 5) {

@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v2101",
+        title: "v2.10.1 — COMBO ANIMADO",
+        body: "Combo con animación al aparecer, al subir de nivel (x2→x3→x5) y al desaparecer. Sistema separado de game.js."
+    },
+    {
         id: "v2100",
         title: "v2.10.0 — RECOMPENSAS VISUALES",
         body: "Al destruir enemigos ves +puntos flotantes y avisos de COMBO. Transiciones de menú más suaves."
