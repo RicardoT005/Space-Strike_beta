@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v296",
+        title: "v2.9.6 — CRÉDITOS + ANIM",
+        body: "Nueva pantalla de créditos del equipo. AnimationManager para menú y feedback de UI."
+    },
+    {
         id: "v295",
         title: "v2.9.5 — PALETA VISUAL",
         body: "Tokens de color unificados (theme.css). Menú, HUD y tienda comparten identidad visual del remaster 3.0."

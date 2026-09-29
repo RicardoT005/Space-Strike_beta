@@ -1,7 +1,2 @@
-SPACE STRIKE — Remaster 3.0 progress
-=====================================
-v2.9.2 core data
-v2.9.3 ShopManager + Nebula
-v2.9.4 particles + audio
-v2.9.5 theme.css design tokens + menu/HUD/shop polish
-NEXT: AnimationManager / enemy extract / more HUD feedback
+v2.9.6 AnimationManager + Credits screen
+Roles: Creador Ricardo Torres Galvez · Co-creador/a · Colaboración diseño R.P.D. LEON

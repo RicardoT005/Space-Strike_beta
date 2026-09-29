@@ -23,6 +23,8 @@ const settingsButton =
 
 const suggestButton =
     document.getElementById("suggestButton");
+const creditsButton =
+    document.getElementById("creditsButton");
 
 const adventureButton =
     document.getElementById("adventureButton");
@@ -338,6 +340,13 @@ function initializeButtons() {
     /*
         Botón configuración.
     */
+
+
+    if (creditsButton) {
+        creditsButton.addEventListener("click", function () {
+            navigateTo("html/credits.html");
+        });
+    }
 
     if (settingsButton) {
 
