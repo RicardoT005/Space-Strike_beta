@@ -1,25 +1,20 @@
 SPACE STRIKE — Remaster 3.0 progress
 =====================================
 
-BACKUP STABLE: SPACE_STRIKE_v2.9.1-STABLE.zip  (congelada)
+BACKUP STABLE: SPACE_STRIKE_v2.9.1-STABLE.zip
 
-v2.9.2 — SAVE / ARCHITECTURE (current)
+v2.9.2 — GameState + PlayerData + SaveManager
+v2.9.3 — ShopManager + Nebula texture refresh
 --------------------------------------
-Added (non-breaking facades):
-  javascript/core/game-state.js   → SpaceStrikeGameState
-  javascript/core/player-data.js  → SpaceStrikePlayerData
-  javascript/core/save-manager.js → SpaceStrikeSaveManager
+  javascript/managers/shop-manager.js
+    purchaseShip / equipShip / purchaseUpgrade
+    Flow: exist → owned? → premium/coins → charge → grant → save → confirm
 
-Rules followed:
-  - No wipe of localStorage keys
-  - Wraps existing ships/upgrades/premium/coins
-  - game.js still owns gameplay (6843 lines) — split comes later
-  - Migration path version: 1
+  Nebula sprite replaced:
+    img/texturas-especiales/nave-especial.png
+    img/ships/nebula.png
 
-NEXT (v2.9.3+):
-  - ShopManager facade over shop.js flow
-  - Extract particles / audio stubs
-  - Progressive cut of enemies/bullets from game.js
-  - Visual palette tokens in CSS
-
-DO NOT skip testing after each step.
+NEXT:
+  v2.9.4 particles/audio stubs extract
+  progressive game.js split
+  visual palette

@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v293",
+        title: "v2.9.3 — SHOP MANAGER + NEBULA",
+        body: "Tienda con flujo seguro (ShopManager). Nueva textura NEBULA. Progreso del remaster 3.0."
+    },
+    {
         id: "v292",
         title: "REMASTER 3.0 — FASE ARQUITECTURA",
         body: "v2.9.2: PlayerData + SaveManager + GameState. Base estable v2.9.1-STABLE. Sin cambios de gameplay; prepara el remaster."

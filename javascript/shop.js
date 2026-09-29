@@ -59,7 +59,13 @@
         } else if (isOwned) {
             btn.textContent = "EQUIPAR";
             btn.addEventListener("click", function () {
-                S.setEquipped(id);
+                var SM = window.SpaceStrikeShopManager;
+                if (SM && SM.equipShip) {
+                    var er = SM.equipShip(id);
+                    if (!er.ok) console.warn("[Shop] equip fail", er);
+                } else {
+                    S.setEquipped(id);
+                }
                 renderShips();
             });
         } else if (isPremShip) {
@@ -68,15 +74,16 @@
                 btn.disabled = false;
                 btn.className = "";
                 btn.addEventListener("click", function () {
-                    const res = S.buy(id);
+                    var SM = window.SpaceStrikeShopManager;
+                    var res = SM && SM.purchaseShip ? SM.purchaseShip(id) : S.buy(id);
                     console.log("[Shop] premium buy", id, res);
                     if (res && res.ok) {
-                        S.setEquipped(id);
+                        if (SM && SM.equipShip) SM.equipShip(id);
+                        else S.setEquipped(id);
                         renderAll();
                     } else if (res && res.reason === "premium") {
                         btn.textContent = "SOLO PREMIUM ★";
                     } else if (res && res.reason === "code_only") {
-                        /* Fallback: grant directly if premium active */
                         if (S.grant) {
                             var g = S.grant(id);
                             if (g && g.ok) {
@@ -99,9 +106,11 @@
             btn.textContent = "COMPRAR · " + ship.cost;
             if (coins < ship.cost) btn.disabled = true;
             btn.addEventListener("click", function () {
-                const res = S.buy(id);
+                var SM = window.SpaceStrikeShopManager;
+                const res = SM && SM.purchaseShip ? SM.purchaseShip(id) : S.buy(id);
                 if (res.ok) {
-                    S.setEquipped(id);
+                    if (SM && SM.equipShip) SM.equipShip(id);
+                    else S.setEquipped(id);
                     renderAll();
                 } else if (res.reason === "coins") {
                     alert("Créditos insuficientes. Necesitas " + res.cost + ".");
@@ -262,7 +271,8 @@
                 btn.textContent = "COMPRAR · " + cost;
                 if (coins < cost) btn.disabled = true;
                 btn.addEventListener("click", function () {
-                    const res = U.buy(id);
+                    var SM = window.SpaceStrikeShopManager;
+                    const res = SM && SM.purchaseUpgrade ? SM.purchaseUpgrade(id) : U.buy(id);
                     if (res.ok) renderAll();
                     else if (res.reason === "coins") alert("Créditos insuficientes. Necesitas " + res.cost + ".");
                 });
