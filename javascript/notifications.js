@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v299",
+        title: "v2.9.9 — FIX RENDER",
+        body: "Corregido crash de partículas (stack overflow) que dejaba la pantalla sin naves ni enemigos."
+    },
+    {
         id: "v298",
         title: "v2.9.8 — FEEDBACK COMBATE",
         body: "Números de daño flotantes al impactar enemigos y misiles. Más respuesta visual en combate."

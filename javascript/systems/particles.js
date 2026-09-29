@@ -168,7 +168,6 @@
         }
         ctx.restore();
         ctx.globalAlpha = 1;
-        drawFloaters(ctx);
     }
 
     function getList() {
