@@ -25,9 +25,9 @@ body {
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
-    background: #030407;
+    background: var(--ss-bg, #030407);
     font-family: "Segoe UI", Arial, sans-serif;
-    color: #ffffff;
+    color: var(--ss-text, #e8eefc);
 }
 
 /* =================================================================
@@ -327,6 +327,7 @@ body {
 ================================================================= */
 
 .menu-button {
+    /* remaster tokens */
 
     position: relative;
 
@@ -650,6 +651,7 @@ body {
     }
 
     .menu-button {
+    /* remaster tokens */
         
         height: 55px;
 
@@ -707,6 +709,7 @@ body {
     }
 
     .menu-button {
+    /* remaster tokens */
 
         height: 48px;
     }
@@ -797,4 +800,35 @@ body {
 .fs-toggle-btn.fs-on {
     border-color: rgba(80,220,160,0.5);
     color: #9fecc8;
+}
+
+
+/* ===== v3.0 remaster tokens (index) ===== */
+.menu-button {
+    border-color: var(--ss-border-strong, rgba(100, 180, 255, 0.4));
+    color: var(--ss-text, #e8eefc);
+    background: linear-gradient(180deg, rgba(20, 40, 70, 0.55), rgba(8, 14, 28, 0.85));
+    transition:
+        transform var(--ss-duration-fast, 0.15s) var(--ss-ease, ease),
+        box-shadow var(--ss-duration, 0.28s) var(--ss-ease, ease),
+        border-color var(--ss-duration, 0.28s) ease,
+        background var(--ss-duration, 0.28s) ease;
+}
+.menu-button:active {
+    transform: scale(0.975);
+}
+.menu-button.play-button {
+    border-color: var(--ss-primary, #3db4ff);
+    box-shadow: 0 0 18px var(--ss-primary-glow, rgba(61, 180, 255, 0.35));
+}
+.logo-main {
+    text-shadow: 0 0 28px var(--ss-primary-glow, rgba(61, 180, 255, 0.5));
+}
+.notice-banner {
+    border-color: var(--ss-border, rgba(100, 160, 255, 0.22));
+    background: var(--ss-bg-panel, rgba(8, 14, 28, 0.92));
+    animation: ss-fade-in 0.4s var(--ss-ease, ease) both;
+}
+.menu {
+    animation: ss-fade-in 0.5s var(--ss-ease, ease) both;
 }

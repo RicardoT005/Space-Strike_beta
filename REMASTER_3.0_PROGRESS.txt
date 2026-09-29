@@ -1,13 +1,7 @@
 SPACE STRIKE — Remaster 3.0 progress
 =====================================
-BACKUP: SPACE_STRIKE_v2.9.1-STABLE.zip
-
-v2.9.2 GameState + PlayerData + SaveManager
-v2.9.3 ShopManager + Nebula texture
-v2.9.4 ParticleSystem + AudioManager
---------------------------------------
-  javascript/systems/particles.js  → SpaceStrikeParticles
-  javascript/systems/audio.js      → SpaceStrikeAudio
-  game.js delegates to modules (legacy fallback kept)
-
-NEXT: visual palette / HUD remaster OR extract enemies/waves
+v2.9.2 core data
+v2.9.3 ShopManager + Nebula
+v2.9.4 particles + audio
+v2.9.5 theme.css design tokens + menu/HUD/shop polish
+NEXT: AnimationManager / enemy extract / more HUD feedback

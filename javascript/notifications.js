@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v295",
+        title: "v2.9.5 — PALETA VISUAL",
+        body: "Tokens de color unificados (theme.css). Menú, HUD y tienda comparten identidad visual del remaster 3.0."
+    },
+    {
         id: "v294",
         title: "v2.9.4 — PARTÍCULAS + AUDIO",
         body: "Sistemas de partículas y audio separados de game.js. Mismo comportamiento, arquitectura más limpia para el remaster 3.0."

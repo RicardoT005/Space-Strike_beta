@@ -30,7 +30,7 @@ body {
 
     overflow: hidden;
 
-    background: #030407;
+    background: var(--ss-bg, #030407);
 
     font-family:
         "Segoe UI",
@@ -1863,4 +1863,25 @@ body {
 .fs-toggle-btn.fs-on {
     border-color: rgba(80,220,160,0.5);
     color: #9fecc8;
+}
+
+
+/* ===== v3.0 remaster tokens (game HUD) ===== */
+.hud-block {
+    background: var(--ss-bg-panel, rgba(8, 14, 28, 0.75));
+    border: 1px solid var(--ss-border, rgba(100, 160, 255, 0.2));
+    border-radius: var(--ss-radius-sm, 8px);
+}
+.ability-btn {
+    transition: transform var(--ss-duration-fast, 0.15s) ease, box-shadow 0.2s ease;
+}
+.ability-btn:active {
+    transform: scale(0.94);
+}
+.ability-btn.ready {
+    box-shadow: 0 0 12px var(--ss-energy, rgba(126, 240, 255, 0.35));
+}
+#launchOverlay .launch-panel,
+.launch-panel {
+    animation: ss-fade-in 0.4s var(--ss-ease, ease) both;
 }

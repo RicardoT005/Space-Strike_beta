@@ -102,3 +102,21 @@ html, body {
     border-color: rgba(80,220,160,0.5);
     color: #9fecc8;
 }
+
+
+/* ===== v3.0 remaster tokens (shop) ===== */
+.shop-card {
+    border-color: var(--ss-border, rgba(100, 160, 255, 0.22));
+    background: var(--ss-bg-panel, rgba(8, 14, 28, 0.9));
+    transition: transform 0.15s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.shop-card:active {
+    transform: scale(0.985);
+}
+.shop-card.equipped {
+    border-color: var(--ss-primary, #3db4ff);
+    box-shadow: 0 0 16px var(--ss-primary-glow, rgba(61, 180, 255, 0.3));
+}
+.shop-card.special-ship {
+    border-color: var(--ss-secondary, rgba(139, 124, 255, 0.5));
+}
