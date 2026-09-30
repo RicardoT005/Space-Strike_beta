@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v320",
+        title: "v3.2.0 — NUBE + INFINITO CARTAS",
+        body: "500 niveles. Tienda solo Aventura. Infinito: mejoras por tarjetas. Progreso en la nube (respaldo local offline). Anuncios fuera del juego; VIP sin anuncios."
+    },
+    {
         id: "v302",
         title: "v3.0.2 — ASALTO + TANQUE",
         body: "Nuevas texturas: ASALTO (Rogue) y TANQUE (Parasite). Compra en tienda y equípalas."

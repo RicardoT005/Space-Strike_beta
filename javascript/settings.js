@@ -461,3 +461,21 @@ if (document.readyState === "loading") {
         });
     });
 })();
+
+(function(){
+  var btn=document.getElementById("adsToggle");
+  if(!btn)return;
+  function ref(){
+    var on=true;
+    try{ if(window.SpaceStrikeAds) on=window.SpaceStrikeAds.adsEnabled(); }catch(e){}
+    if(window.SpaceStrikeAds&&window.SpaceStrikeAds.isPremium&&window.SpaceStrikeAds.isPremium()){btn.textContent="PREMIUM OFF";btn.disabled=true;return;}
+    btn.disabled=false;btn.textContent=on?"ON":"OFF";
+  }
+  btn.onclick=function(){
+    var on=true; try{ on=window.SpaceStrikeAds.adsEnabled(); }catch(e){}
+    if(window.SpaceStrikeAds) window.SpaceStrikeAds.setAdsEnabled(!on);
+    if(confirm("Recargar para aplicar anuncios?")) location.reload();
+    else ref();
+  };
+  ref();
+})();

@@ -166,6 +166,7 @@ const game = {
 
     /* Wave / kill quotas */
     waveKills: 0,
+    runUpgrades: {},
 
     waveKillTarget: 10,
 
@@ -1462,20 +1463,20 @@ function applyOwnedUpgrades() {
         }
     }
 
-    /* Then stack purchased upgrades on top of ship */
+    /* Shop upgrades ONLY in adventure (or menu). Infinite = ship defaults + run cards */
+    var useShopUpgrades = !(game && game.mode === "infinite");
     if (
+        useShopUpgrades &&
         window.SpaceStrikeUpgrades &&
         typeof window.SpaceStrikeUpgrades.applyToPlayer === "function"
     ) {
         var u = window.SpaceStrikeUpgrades.loadUpgrades();
-        /* Manual merge so ship bases are not wiped */
         player.fireRate = Math.max(70, (player.baseFireRate || 165) - (u.fireRate || 0) * 18);
         player.speed = (player.baseSpeed || 390) + (u.moveSpeed || 0) * 35;
         player.maxHealth = (player.shipMaxHealth || 3) + (u.resistance || 0);
         player.shields = Math.max(0, Number(u.shield) || 0);
-        player.doubleCannon = Number(u.doubleCannon) > 0;
+        player.doubleCannon = Number(u.doubleCannon) > 0 || player.doubleCannon;
         player.hasHelper = Number(u.helper) > 0;
-        /* R.P.D. incluye dron policial de serie */
         if (player.rpdShip || player.shipId === "rpd") {
             player.hasHelper = true;
             player.rpdDrone = true;
@@ -1487,6 +1488,26 @@ function applyOwnedUpgrades() {
         player.missileCountLv = Number(u.missileCount) || 0;
         player.missileDamageLv = Number(u.missileDamage) || 0;
         player.missileBlastLv = Number(u.missileBlast) || 0;
+    } else if (game && game.mode === "infinite") {
+        /* Run-only upgrades (cards) */
+        var ru = game.runUpgrades || {};
+        player.fireRate = Math.max(70, (player.baseFireRate || 165) - (ru.fireRate || 0) * 18);
+        player.speed = (player.baseSpeed || 390) + (ru.moveSpeed || 0) * 35;
+        player.maxHealth = (player.shipMaxHealth || 3) + (ru.resistance || 0);
+        if (player.health > player.maxHealth) player.health = player.maxHealth;
+        player.shields = Math.max(player.shields || 0, Number(ru.shield) || 0);
+        if (Number(ru.doubleCannon) > 0) player.doubleCannon = true;
+        if (Number(ru.helper) > 0) player.hasHelper = true;
+        if (player.rpdShip || player.shipId === "rpd") {
+            player.hasHelper = true;
+            player.rpdDrone = true;
+        }
+        if (Number(ru.pierce) > 0) player.pierce = true;
+        if (Number(ru.multiShot) > 0) player.multiShot = true;
+        player.bulletDamage = 1 + (player.shipDamageBonus || 0) + Math.max(0, Number(ru.damage) || 0);
+        player.missileCountLv = Number(ru.missileCount) || 0;
+        player.missileDamageLv = Number(ru.missileDamage) || 0;
+        player.missileBlastLv = Number(ru.missileBlast) || 0;
     }
 
     /* NEBULA special: fixed traits (no stack beyond ship) */
@@ -2416,14 +2437,17 @@ function isMissileCardWave(wave) {
 }
 
 function grantMissileUpgradeLevel(id) {
-    if (!window.SpaceStrikeUpgrades) return false;
-    var u = window.SpaceStrikeUpgrades.loadUpgrades();
-    var cat = window.SpaceStrikeUpgrades.catalog[id];
-    if (!cat) return false;
-    var lv = u[id] || 0;
-    if (lv >= cat.maxLevel) return false;
-    u[id] = lv + 1;
-    window.SpaceStrikeUpgrades.saveUpgrades(u);
+    /* Infinite: run-only upgrades (not shop / cloud adventure upgrades) */
+    if (!game.runUpgrades) game.runUpgrades = {};
+    var maxMap = {
+        fireRate: 5, moveSpeed: 4, resistance: 3, shield: 3, damage: 3,
+        doubleCannon: 1, multiShot: 1, pierce: 1, helper: 1,
+        missileCount: 4, missileDamage: 4, missileBlast: 4
+    };
+    var max = maxMap[id] != null ? maxMap[id] : 3;
+    var lv = Number(game.runUpgrades[id]) || 0;
+    if (lv >= max) return false;
+    game.runUpgrades[id] = lv + 1;
     applyOwnedUpgrades();
     return true;
 }
@@ -2435,16 +2459,29 @@ function showMissileCardPick() {
     game.running = false;
 
     var options = [
-        { id: "missileCount", title: "MISILES ×N", desc: "+1 misil por salva (máx 5)" },
-        { id: "missileDamage", title: "OJIVA", desc: "+ daño de misil / centro" },
-        { id: "missileBlast", title: "RADIO EXPLOSIÓN", desc: "+ área de daño AoE" }
+        { id: "fireRate", title: "CADENCIA", desc: "Dispara más rápido" },
+        { id: "damage", title: "POTENCIA", desc: "+ daño por disparo" },
+        { id: "moveSpeed", title: "PROPULSIÓN", desc: "Más velocidad" },
+        { id: "resistance", title: "RESISTENCIA", desc: "+1 hull" },
+        { id: "shield", title: "ESCUDO", desc: "+1 carga de escudo" },
+        { id: "doubleCannon", title: "CAÑONES DOBLES", desc: "Dos líneas de disparo" },
+        { id: "multiShot", title: "RÁFAGA", desc: "Abanico de 3 balas" },
+        { id: "pierce", title: "PERFORACIÓN", desc: "Balas atraviesan" },
+        { id: "helper", title: "AYUDANTE", desc: "Drone de apoyo" },
+        { id: "missileCount", title: "MISILES ×N", desc: "+1 misil teledirigido" },
+        { id: "missileDamage", title: "OJIVA", desc: "+ daño de misil" },
+        { id: "missileBlast", title: "RADIO EXPLOSIÓN", desc: "+ área AoE" }
     ];
-    /* shuffle pick up to 2 available */
+    if (!game.runUpgrades) game.runUpgrades = {};
+    var maxMap = {
+        fireRate: 5, moveSpeed: 4, resistance: 3, shield: 3, damage: 3,
+        doubleCannon: 1, multiShot: 1, pierce: 1, helper: 1,
+        missileCount: 4, missileDamage: 4, missileBlast: 4
+    };
     options = options.filter(function (o) {
-        var u = window.SpaceStrikeUpgrades ? window.SpaceStrikeUpgrades.loadUpgrades() : {};
-        var cat = window.SpaceStrikeUpgrades && window.SpaceStrikeUpgrades.catalog[o.id];
-        var lv = u[o.id] || 0;
-        return cat && lv < cat.maxLevel;
+        var lv = Number(game.runUpgrades[o.id]) || 0;
+        var max = maxMap[o.id] != null ? maxMap[o.id] : 3;
+        return lv < max;
     });
     for (var i = options.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
@@ -2463,7 +2500,7 @@ function showMissileCardPick() {
     overlay.style.display = "flex";
 
     var title = document.createElement("div");
-    title.textContent = "MEJORA DE MISILES · ELIGE 1";
+    title.textContent = "MEJORA DE OLEADA · ELIGE 1";
     title.style.cssText = "color:#fbbf24;font-size:14px;letter-spacing:2px;margin-bottom:14px;text-align:center;";
     overlay.appendChild(title);
 
@@ -4114,7 +4151,7 @@ function parseGameModeFromURL() {
 
         if (mode === "adventure") {
             game.mode = "adventure";
-            game.adventureLevel = Math.max(1, Math.min(100, level || 1));
+            game.adventureLevel = Math.max(1, Math.min(500, level || 1));
         } else {
             game.mode = "infinite";
             game.adventureLevel = 1;
@@ -5627,6 +5664,10 @@ function continueGame() {
     Backward-compatible alias used by restart button.
 */
 function startGame() {
+    if (game.mode === "infinite") {
+        game.runUpgrades = {};
+    }
+
     startNewGame();
 }
 

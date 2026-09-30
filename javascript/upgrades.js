@@ -170,6 +170,7 @@ function saveCoins(amount) {
     try {
         localStorage.setItem(COINS_KEY, String(Math.max(0, Math.floor(amount))));
     } catch (e) {}
+    try { if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.queuePush) window.SpaceStrikeAuth.queuePush(); } catch (e2) {}
 }
 
 function addCoins(amount) {
@@ -199,6 +200,7 @@ function saveUpgrades(upgrades) {
     try {
         localStorage.setItem(UPGRADES_KEY, JSON.stringify(upgrades));
     } catch (e) {}
+    try { if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.queuePush) window.SpaceStrikeAuth.queuePush(); } catch (e2) {}
 }
 
 function getUpgradeCost(id, currentLevel) {

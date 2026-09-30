@@ -283,6 +283,7 @@ function setEquippedShipId(id) {
     var owned = loadOwnedShips();
     if (owned.indexOf(id) < 0) return false;
     try {
+        try { if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.queuePush) window.SpaceStrikeAuth.queuePush(); } catch (eQP) {}
         localStorage.setItem(EQUIPPED_KEY, id);
     } catch (e) {}
     notifyShipsChanged();

@@ -91,6 +91,15 @@
                 return fallback;
             }
         }
+        var premRaw = localStorage.getItem("spaceStrikePremium");
+        var premiumFlag = false;
+        try {
+            if (premRaw === "1") premiumFlag = true;
+            else if (premRaw) {
+                var pp = JSON.parse(premRaw);
+                premiumFlag = !!(pp && (pp.active || pp === true));
+            }
+        } catch (eP) {}
         return {
             profile: safeParse("spaceStrikeProfile", null),
             coins: Number(localStorage.getItem("spaceStrikeCoins") || 0),
@@ -101,10 +110,15 @@
             equipped: (window.SpaceStrikeShips && window.SpaceStrikeShips.getEquippedId)
                 ? window.SpaceStrikeShips.getEquippedId()
                 : (localStorage.getItem("spaceStrikeEquippedShip") || "interceptor"),
-            premium: localStorage.getItem("spaceStrikePremium") === "1",
+            premium: premiumFlag,
             adventure: safeParse("spaceStrikeAdventure", { levels: {} }),
             highScore: Number(localStorage.getItem("spaceStrikeHighScore") || 0),
             rank: safeParse("spaceStrikeRank", null),
+            xp: Number(localStorage.getItem("spaceStrikeXP") || 0),
+            vipXp: Number(localStorage.getItem("spaceStrikeVipXP") || 0),
+            achievements: safeParse("spaceStrikeAchievements", {}),
+            settings: safeParse("spaceStrikeSettings", {}),
+            source: "local-backup",
             updatedAt: Date.now()
         };
     }
@@ -174,12 +188,11 @@
                 upgrades: Object.assign({}, local.upgrades || {}, cloud.upgrades || {}),
                 ships: Array.from(new Set([].concat(local.ships || [], cloud.ships || []))),
                 equipped: (function () {
-                    var shipsM = Array.from(new Set([].concat(local.ships || [], cloud.ships || [])));
-                    var eq = local.equipped || cloud.equipped || "interceptor";
+                    var shipsM = Array.from(new Set([].concat(cloud.ships || [], local.ships || [])));
+                    /* Cloud-first: equipped from cloud if valid */
+                    var eq = cloud.equipped || local.equipped || "interceptor";
                     if (cloud.equipped && shipsM.indexOf(cloud.equipped) >= 0) eq = cloud.equipped;
-                    if (local.equipped && shipsM.indexOf(local.equipped) >= 0) eq = local.equipped;
-                    /* prefer special nebula if just unlocked locally */
-                    if (local.equipped === "nebula" && shipsM.indexOf("nebula") >= 0) eq = "nebula";
+                    else if (local.equipped && shipsM.indexOf(local.equipped) >= 0) eq = local.equipped;
                     return eq;
                 })(),
                 premium: !!(cloud.premium || local.premium),
@@ -206,7 +219,13 @@
     /* auto-push every 45s if logged in */
     setInterval(function () {
         if (currentUser()) pushCloud();
-    }, 45000);
+    }, 20000);
+
+    /* Public helper: modules call after local change → cloud */
+    function queuePush() {
+        if (!currentUser()) return;
+        try { pushCloud(); } catch (e) {}
+    }
 
     window.addEventListener("beforeunload", function () {
         if (currentUser()) pushCloud();
@@ -218,6 +237,7 @@
         signOut: signOut,
         user: currentUser,
         push: pushCloud,
+        queuePush: queuePush,
         pull: pullCloud,
         isLoggedIn: function () { return !!currentUser(); }
     };

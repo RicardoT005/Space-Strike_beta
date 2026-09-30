@@ -700,3 +700,9 @@ if (
     initializeMenu();
 
 }
+(function () {
+    var b = document.getElementById("whatsappChannelButton");
+    if (b) b.addEventListener("click", function () {
+        window.open("https://whatsapp.com/channel/0029Vb9gFED3WHTQSFnafp2V", "_blank");
+    });
+})();
