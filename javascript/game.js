@@ -5618,19 +5618,12 @@ function continueGame() {
 
     const level = data.level;
 
-    /* Restore equipped ship from save (or global inventory) before run state */
-    try {
-        var sid = data.shipId || null;
-        if (sid && window.SpaceStrikeShips && window.SpaceStrikeShips.catalog && window.SpaceStrikeShips.catalog[sid]) {
-            if (window.SpaceStrikeShips.owns && !window.SpaceStrikeShips.owns(sid)) {
-                window.SpaceStrikeShips.grant(sid, { equip: true });
-            } else if (window.SpaceStrikeShips.setEquipped) {
-                window.SpaceStrikeShips.setEquipped(sid);
-            } else {
-                localStorage.setItem("spaceStrikeEquippedShip", sid);
-            }
-        }
-    } catch (eRestore) {}
+    /*
+       IMPORTANT: the saved run is not allowed to change the player's
+       currently equipped ship. `shipId` belongs to the old run snapshot;
+       the inventory/equipment system is the single source of truth.
+       This prevents Continue from silently re-equipping an old ship.
+    */
 
     applyOwnedUpgrades();
 

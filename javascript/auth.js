@@ -189,10 +189,20 @@
                 ships: Array.from(new Set([].concat(local.ships || [], cloud.ships || []))),
                 equipped: (function () {
                     var shipsM = Array.from(new Set([].concat(cloud.ships || [], local.ships || [])));
-                    /* Cloud-first: equipped from cloud if valid */
-                    var eq = cloud.equipped || local.equipped || "interceptor";
-                    if (cloud.equipped && shipsM.indexOf(cloud.equipped) >= 0) eq = cloud.equipped;
-                    else if (local.equipped && shipsM.indexOf(local.equipped) >= 0) eq = local.equipped;
+                    /*
+                       Equipped ship is a local-first setting.
+                       The device where the player just equipped a ship must not
+                       be overwritten by an older Firebase value. Cloud is only
+                       used when there is no valid local selection.
+                    */
+                    var eq = "interceptor";
+                    if (local.equipped && shipsM.indexOf(local.equipped) >= 0) {
+                        eq = local.equipped;
+                    } else if (cloud.equipped && shipsM.indexOf(cloud.equipped) >= 0) {
+                        eq = cloud.equipped;
+                    } else if (shipsM.indexOf("interceptor") >= 0) {
+                        eq = "interceptor";
+                    }
                     return eq;
                 })(),
                 premium: !!(cloud.premium || local.premium),

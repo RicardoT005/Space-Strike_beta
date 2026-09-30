@@ -1,4 +1,4 @@
-/* SPACE STRIKE 2.6.9 — Ship inventory (single source of truth) */
+/* SPACE STRIKE 3.2.2 — Ship inventory (single source of truth) */
 
 const SHIPS_KEY = "spaceStrikeShips";
 const EQUIPPED_KEY = "spaceStrikeEquippedShip";
