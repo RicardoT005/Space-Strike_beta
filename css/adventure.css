@@ -358,3 +358,23 @@ html, body {
     border-color: rgba(80,220,160,0.5);
     color: #9fecc8;
 }
+
+.star-map {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    max-height: min(62vh, 520px);
+}
+.map-inner { min-height: 100%; }
+.map-node {
+    position: absolute;
+    z-index: 2;
+}
+.map-paths {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}

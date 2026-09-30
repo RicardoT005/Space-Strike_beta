@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v321",
+        title: "v3.2.1 — MAPA + EQUIPAR",
+        body: "Mapa de aventura desde abajo y centrado en tu progreso. Equipar nave prioriza este dispositivo; la nube solo sincroniza al cambiar o en otro celular. Texturas y textos actualizados."
+    },
+    {
         id: "v320",
         title: "v3.2.0 — NUBE + INFINITO CARTAS",
         body: "500 niveles. Tienda solo Aventura. Infinito: mejoras por tarjetas. Progreso en la nube (respaldo local offline). Anuncios fuera del juego; VIP sin anuncios."

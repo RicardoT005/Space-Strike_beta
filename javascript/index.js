@@ -366,9 +366,9 @@ function initializeButtons() {
                 }
             } catch (e) {}
             var msg =
-                "SUGERENCIA SPACE STRIKE\n" +
+                "SUGERENCIA SPACE STRIKE v3.2.1\n" +
                 "Piloto: " + (pilot || "sin nombre") + "\n" +
-                "Versión: V2.6.17\n\n" +
+                "Versión: V3.2.1\n\n" +
                 "Escribe aquí tu idea o reporte:";
             window.open("https://wa.me/525562260337?text=" + encodeURIComponent(msg), "_blank");
         });

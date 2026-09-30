@@ -281,12 +281,22 @@ function setEquippedShipId(id) {
     id = String(id || "").toLowerCase().trim();
     if (!SHIP_CATALOG[id]) return false;
     var owned = loadOwnedShips();
-    if (owned.indexOf(id) < 0) return false;
+    if (owned.indexOf(id) < 0) {
+        console.warn("[SHIPS] equip denied, not owned:", id, owned);
+        return false;
+    }
+    /* Local first — always */
     try {
-        try { if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.queuePush) window.SpaceStrikeAuth.queuePush(); } catch (eQP) {}
         localStorage.setItem(EQUIPPED_KEY, id);
     } catch (e) {}
     notifyShipsChanged();
+    /* Cloud write only the change (other device sync later) */
+    try {
+        if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.push) {
+            var p = window.SpaceStrikeAuth.push();
+            if (p && p.then) p.catch(function (err) { console.warn("[SHIPS] equip push", err); });
+        }
+    } catch (e2) {}
     return true;
 }
 
@@ -446,18 +456,28 @@ function applyInventoryFromCloud(cloudShips, cloudEquipped) {
     console.log("[SHIPS] merge local:", local.join(","), "cloud:", (cloudShips || []).join(","), "=>", merged.join(","));
     saveOwnedShips(merged);
 
-    var eq = cloudEquipped || localStorage.getItem(EQUIPPED_KEY) || "interceptor";
-    eq = String(eq).toLowerCase().trim();
-    /* Prefer local equipped if still owned after merge (recent grant) */
-    var localEq = localStorage.getItem(EQUIPPED_KEY);
+    /*
+      Equip rule (v3.2.1):
+      - Local equipped wins if still owned (same device).
+      - Cloud equipped only if local missing / not owned (new device).
+    */
+    var localEq = "";
+    try { localEq = String(localStorage.getItem(EQUIPPED_KEY) || "").toLowerCase().trim(); } catch (e0) {}
+    var cloudEq = String(cloudEquipped || "").toLowerCase().trim();
+    var eq = "interceptor";
     var meta = readMeta();
     var recentGrant = meta.lastGrantAt && (Date.now() - Number(meta.lastGrantAt) < 120000);
+
     if (recentGrant && meta.lastGrantId && merged.indexOf(meta.lastGrantId) >= 0) {
         eq = meta.lastGrantId;
     } else if (localEq && merged.indexOf(localEq) >= 0) {
         eq = localEq;
-    } else if (merged.indexOf(eq) < 0) {
+    } else if (cloudEq && merged.indexOf(cloudEq) >= 0) {
+        eq = cloudEq;
+    } else if (merged.indexOf("interceptor") >= 0) {
         eq = "interceptor";
+    } else if (merged.length) {
+        eq = merged[0];
     }
     try {
         localStorage.setItem(EQUIPPED_KEY, eq);

@@ -15,7 +15,7 @@
     <main class="adventure">
         <header class="page-header">
             <div class="page-title">MODO AVENTURA</div>
-            <div class="page-subtitle">STAR MAP // 100 SECTORS</div>
+            <div class="page-subtitle">STAR MAP // 500 SECTORS</div>
         </header>
 
         <div class="separator"></div>
@@ -39,7 +39,7 @@
             </button>
         </section>
 
-        <div class="version">V3.2.0</div>
+        <div class="version">V3.2.1</div>
     </main>
 
     <div id="transition"></div>
@@ -93,53 +93,51 @@
             const progress = window.SpaceStrikeLevels.loadAdventureProgress();
             const mapInner = document.getElementById("mapInner") || starMap;
             const svg = mapInner.querySelector(".map-paths");
-            const rows = Math.ceil(levels.length / 5);
-            mapInner.style.height = (rows * 92 + 64) + "px";
+            const cols = 5;
+            const rowH = 96;
+            const rows = Math.ceil(levels.length / cols);
+            const padTop = 48;
+            const padBottom = 80;
+            mapInner.style.height = (rows * rowH + padTop + padBottom) + "px";
             mapInner.style.position = "relative";
             mapInner.style.width = "100%";
 
-            // Decorative planets & nebulae
-            mapInner.querySelectorAll(".planet, .nebula").forEach(function (el) { el.remove(); });
-            const decor = [
-                { cls: "planet planet-a", left: "8%", top: "12%" },
-                { cls: "planet planet-b", left: "78%", top: "28%" },
-                { cls: "planet planet-c", left: "70%", top: "62%" },
-                { cls: "planet planet-d", left: "12%", top: "48%" },
-                { cls: "planet planet-e", left: "55%", top: "8%" },
-                { cls: "nebula", left: "20%", top: "70%", w: 90, h: 90, color: "rgba(0,120,200,0.35)" },
-                { cls: "nebula", left: "60%", top: "35%", w: 70, h: 70, color: "rgba(120,40,180,0.3)" }
-            ];
-            decor.forEach(function (d) {
-                const el = document.createElement("div");
-                el.className = d.cls;
-                el.style.left = d.left;
-                el.style.top = d.top;
-                if (d.w) {
-                    el.style.width = d.w + "px";
-                    el.style.height = d.h + "px";
-                    el.style.background = d.color;
-                }
-                mapInner.appendChild(el);
-            });
+            mapInner.querySelectorAll(".planet, .nebula, .map-node").forEach(function (el) { el.remove(); });
 
-            let pathD = "";
+            /* Positions: level 1 at BOTTOM, higher ids toward TOP (scroll up to advance) */
+            function posForIndex(i) {
+                var rowFromStart = Math.floor(i / cols);
+                var col = i % cols;
+                /* snake: alternate direction each row */
+                if (rowFromStart % 2 === 1) col = cols - 1 - col;
+                var rowFromBottom = rows - 1 - rowFromStart;
+                var xPct = 10 + col * 20;
+                var yPx = padTop + rowFromBottom * rowH + rowH * 0.35;
+                var yPct = (yPx / (rows * rowH + padTop + padBottom)) * 100;
+                return { xPct: xPct, yPx: yPx, yPct: yPct };
+            }
+
+            var pathPts = [];
+            var focusNode = null;
+            var lastUnlockedId = 1;
+
             levels.forEach(function (lvl, i) {
-                const x = lvl.map.x;
-                const y = lvl.map.y;
-                if (i === 0) pathD += "M " + x + " " + y;
-                else pathD += " L " + x + " " + y;
-            });
-            svg.innerHTML = '<path d="' + pathD + '" fill="none" stroke="rgba(80,190,255,0.55)" stroke-width="0.9" stroke-dasharray="2 1.5" stroke-linecap="round"/>';
+                var pos = posForIndex(i);
+                pathPts.push(pos.xPct + " " + pos.yPct);
 
-            levels.forEach(function (lvl) {
-                const unlocked = window.SpaceStrikeLevels.isUnlocked(lvl.id, progress);
-                const stars = Number((progress.levels || {})[String(lvl.id)] || 0);
+                var stars = Number((progress.levels || {})[String(lvl.id)] || 0);
+                var unlocked = window.SpaceStrikeLevels.isUnlocked
+                    ? window.SpaceStrikeLevels.isUnlocked(lvl.id, progress)
+                    : (lvl.id === 1 || stars > 0);
+                if (unlocked) lastUnlockedId = lvl.id;
 
-                const node = document.createElement("button");
+                var node = document.createElement("button");
                 node.type = "button";
                 node.className = "map-node" + (unlocked ? "" : " locked") + (stars > 0 ? " cleared" : "");
-                node.style.left = lvl.map.x + "%";
-                node.style.top = lvl.map.y + "%";
+                node.style.left = pos.xPct + "%";
+                node.style.top = pos.yPx + "px";
+                node.style.transform = "translate(-50%, -50%)";
+                node.dataset.levelId = String(lvl.id);
                 node.innerHTML =
                     '<span class="node-id">' + String(lvl.id).padStart(2, "0") + "</span>" +
                     '<span class="node-name">' + lvl.name + "</span>" +
@@ -149,10 +147,27 @@
                     node.addEventListener("click", function () {
                         navigateTo("game.html?mode=adventure&level=" + lvl.id);
                     });
+                    focusNode = node;
                 }
-
                 mapInner.appendChild(node);
             });
+
+            var pathD = pathPts.length ? ("M " + pathPts.join(" L ")) : "";
+            if (svg) {
+                svg.setAttribute("viewBox", "0 0 100 100");
+                svg.innerHTML = '<path d="' + pathD + '" fill="none" stroke="rgba(80,190,255,0.35)" stroke-width="0.35" stroke-linecap="round"/>';
+            }
+
+            /* Scroll to last unlocked (near bottom of progress) */
+            setTimeout(function () {
+                var target = mapInner.querySelector('.map-node[data-level-id="' + lastUnlockedId + '"]') || focusNode;
+                if (target && starMap) {
+                    var top = Math.max(0, target.offsetTop - starMap.clientHeight * 0.55);
+                    starMap.scrollTop = top;
+                } else if (starMap) {
+                    starMap.scrollTop = starMap.scrollHeight;
+                }
+            }, 80);
         }
 
         backButton.addEventListener("click", function () {
