@@ -5,7 +5,7 @@
     var EQUIP_KEY = "spaceStrikeEquippedShip";
     var ADMIN_EMAILS = [
         "ricardotorresgalvez005@gmail.com",
-        "yocepliliamurguiacuriel@gmail.com"
+        "yocepliliamurguia@gmail.com"
     ];
 
     function getDb() {

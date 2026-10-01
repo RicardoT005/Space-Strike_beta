@@ -457,7 +457,7 @@ function applyInventoryFromCloud(cloudShips, cloudEquipped) {
     saveOwnedShips(merged);
 
     /*
-      Equip rule (v3.2.1):
+      Equip rule (v3.2.4):
       - Local equipped wins if still owned (same device).
       - Cloud equipped only if local missing / not owned (new device).
     */
