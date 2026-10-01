@@ -3,7 +3,7 @@
     var COL = "premiumCodes";
     var ADMIN_EMAILS = [
         "ricardotorresgalvez005@gmail.com",
-        "yocepliliamurguiacuriel@gmail.com"
+        "Yocepliliamurguiacuriel@gmail.com"
     ];
 
     function getDb() {
