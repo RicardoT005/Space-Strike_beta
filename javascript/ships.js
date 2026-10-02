@@ -45,7 +45,7 @@ const SHIP_CATALOG = {
         damageBonus: 0,
         color: "#c8d0d8",
         accent: "#e8eef5",
-        texture: "tank"
+        texture: "spectre"
     },
     spectre: {
         id: "spectre",
@@ -58,7 +58,8 @@ const SHIP_CATALOG = {
         maxHealth: 2,
         damageBonus: 0,
         color: "#c090ff",
-        accent: "#f0e0ff"
+        accent: "#f0e0ff",
+        texture: "tank"
     },
     destroyer: {
         id: "destroyer",
