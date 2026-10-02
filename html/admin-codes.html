@@ -24,6 +24,10 @@ pre{background:#111;padding:12px;border-radius:8px;white-space:pre-wrap;word-bre
   <input id="count" type="number" value="5" min="1" max="30">
   <button type="button" id="gen">Generar</button>
   <pre id="out"></pre>
+  <hr style="border-color:rgba(255,80,80,0.3);margin:16px 0">
+  <p style="color:#f88">Reiniciar ranking global (scores + highScore usuarios)</p>
+  <button type="button" id="wipeRanking">🗑 REINICIAR RANKING</button>
+  <pre id="wipeOut"></pre>
   <p style="font-size:12px;opacity:.7">Reglas Firestore: permitir create en premiumCodes solo desde tu cuenta o temporalmente open create para generar.</p>
 </div>
     <script src="../javascript/core/game-state.js"></script>
@@ -36,6 +40,7 @@ pre{background:#111;padding:12px;border-radius:8px;white-space:pre-wrap;word-bre
 
 <script src="../javascript/auth.js"></script>
 <script src="../javascript/premium-codes.js"></script>
+<script src="../javascript/leaderboard-global.js"></script>
 <script>
 var ADMIN_PW = "multisoftdev"; // cámbiala
 document.getElementById("enter").onclick=function(){
@@ -43,6 +48,17 @@ document.getElementById("enter").onclick=function(){
     document.getElementById("gate").classList.add("hidden");
     document.getElementById("panel").classList.remove("hidden");
   } else alert("No");
+};
+document.getElementById("wipeRanking").onclick=function(){
+  if(!confirm("¿Borrar TODO el ranking global?"))return;
+  if(!confirm("Segunda confirmación: irreversible"))return;
+  document.getElementById("wipeOut").textContent="Borrando…";
+  var api=window.SpaceStrikeGlobalLB;
+  var fn=api&&(api.wipeRankingAndScores||api.resetGlobalRanking);
+  if(!fn){document.getElementById("wipeOut").textContent="API no lista";return;}
+  fn.call(api).then(function(res){
+    document.getElementById("wipeOut").textContent=JSON.stringify(res,null,2);
+  });
 };
 document.getElementById("gen").onclick=function(){
   var n=Number(document.getElementById("count").value)||5;
@@ -53,6 +69,6 @@ document.getElementById("gen").onclick=function(){
   });
 };
 </script>
-<div class="version">V3.2.4</div>    <script src="../javascript/managers/ad-manager.js"></script>
+<div class="version">V3.2.7</div>    <script src="../javascript/managers/ad-manager.js"></script>
 </body>
 </html>

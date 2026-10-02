@@ -315,7 +315,122 @@
         });
     }
 
-    window.SpaceStrikeGlobalLB = {
+    
+    /**
+     * ADMIN ONLY — delete every document in scores collection (global ranking wipe).
+     * Batched (max 400 ops per commit).
+     */
+    function resetGlobalRanking() {
+        return init().then(function (ok) {
+            if (!ok || !db) {
+                return { ok: false, error: "Firebase no disponible" };
+            }
+            var email = "";
+            try {
+                if (window.SpaceStrikeCodes && window.SpaceStrikeCodes.isAdmin) {
+                    if (!window.SpaceStrikeCodes.isAdmin()) {
+                        return { ok: false, error: "No autorizado (solo admin)" };
+                    }
+                } else if (window.SpaceStrikeAuth && window.SpaceStrikeAuth.user) {
+                    var u = window.SpaceStrikeAuth.user();
+                    email = (u && u.email) ? String(u.email).toLowerCase() : "";
+                    var admins = ["ricardotorresgalvez005@gmail.com", "yocepliliamurguia@gmail.com"];
+                    if (admins.indexOf(email) < 0) {
+                        return { ok: false, error: "No autorizado (solo admin)" };
+                    }
+                } else {
+                    return { ok: false, error: "Inicia sesión como admin" };
+                }
+            } catch (e) {
+                return { ok: false, error: String(e && e.message || e) };
+            }
+
+            return db.collection("scores").get().then(function (snap) {
+                var docs = [];
+                snap.forEach(function (doc) { docs.push(doc.ref); });
+                if (!docs.length) {
+                    return { ok: true, deleted: 0, message: "Ranking ya estaba vacío" };
+                }
+                var deleted = 0;
+                function commitChunk(start) {
+                    if (start >= docs.length) {
+                        return Promise.resolve({ ok: true, deleted: deleted });
+                    }
+                    var batch = db.batch();
+                    var end = Math.min(start + 400, docs.length);
+                    for (var i = start; i < end; i++) {
+                        batch.delete(docs[i]);
+                        deleted++;
+                    }
+                    return batch.commit().then(function () {
+                        return commitChunk(end);
+                    });
+                }
+                return commitChunk(0);
+            }).then(function (res) {
+                /* also clear local high score cache of this device */
+                try {
+                    localStorage.setItem("spaceStrikeHighScore", "0");
+                    localStorage.setItem("spaceStrikeLeaderboard", "[]");
+                } catch (e2) {}
+                return res;
+            });
+        }).catch(function (err) {
+            return { ok: false, error: String(err && err.message || err) };
+        });
+    }
+
+    /**
+     * ADMIN — set highScore=0 on all users docs (so cloud progress doesn't re-inflate ranking).
+     */
+    function resetAllUsersHighScores() {
+        return init().then(function (ok) {
+            if (!ok || !db) return { ok: false, error: "Firebase no disponible" };
+            try {
+                if (window.SpaceStrikeCodes && window.SpaceStrikeCodes.isAdmin && !window.SpaceStrikeCodes.isAdmin()) {
+                    return { ok: false, error: "No autorizado (solo admin)" };
+                }
+            } catch (e) {}
+            return db.collection("users").get().then(function (snap) {
+                var refs = [];
+                snap.forEach(function (doc) { refs.push(doc.ref); });
+                var updated = 0;
+                function chunk(start) {
+                    if (start >= refs.length) return Promise.resolve({ ok: true, updated: updated });
+                    var batch = db.batch();
+                    var end = Math.min(start + 400, refs.length);
+                    for (var i = start; i < end; i++) {
+                        batch.set(refs[i], { highScore: 0, rankingResetAt: Date.now() }, { merge: true });
+                        updated++;
+                    }
+                    return batch.commit().then(function () { return chunk(end); });
+                }
+                return chunk(0);
+            });
+        }).catch(function (err) {
+            return { ok: false, error: String(err && err.message || err) };
+        });
+    }
+
+    function wipeRankingAndScores() {
+        return resetGlobalRanking().then(function (a) {
+            if (!a || !a.ok) return a;
+            return resetAllUsersHighScores().then(function (b) {
+                return {
+                    ok: !!(b && b.ok),
+                    deleted: a.deleted || 0,
+                    usersReset: (b && b.updated) || 0,
+                    error: b && b.error,
+                    message: "Ranking borrado (" + (a.deleted || 0) + " entradas). High scores de usuarios en 0 (" + ((b && b.updated) || 0) + ")."
+                };
+            });
+        });
+    }
+
+window.SpaceStrikeGlobalLB = {
+        resetGlobalRanking: resetGlobalRanking,
+        resetAllUsersHighScores: resetAllUsersHighScores,
+        wipeRankingAndScores: wipeRankingAndScores,
         init: init,
         submit: submitScore,
         top: fetchTop,

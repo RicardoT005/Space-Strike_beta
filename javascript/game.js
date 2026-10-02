@@ -954,6 +954,11 @@ loadShipSprite("tank", [
     "../img/texturas-especiales/tank.png",
     "img/ships/tank.png"
 ]);
+loadShipSprite("spectre", [
+    "../img/ships/spectre.png",
+    "../img/texturas-especiales/spectre.png",
+    "img/ships/spectre.png"
+]);
 loadShipSprite("interceptor", [
     "../img/ships/interceptor.png",
     "../img/texturas-especiales/interceptor.png",
@@ -1392,6 +1397,15 @@ function applyOwnedUpgrades() {
                 "../img/ships/tank.png",
                 "../img/texturas-especiales/tank.png",
                 "img/ships/tank.png"
+            ]);
+        }
+    }
+    if (player.shipId === "spectre") {
+        if (typeof loadShipSprite === "function") {
+            loadShipSprite("spectre", [
+                "../img/ships/spectre.png",
+                "../img/texturas-especiales/spectre.png",
+                "img/ships/spectre.png"
             ]);
         }
     }
@@ -2016,6 +2030,10 @@ function drawPlayer() {
         if (sidTex === "tank") {
             sw = player.width * 1.75;
             sh = player.height * 2.0;
+        }
+        if (sidTex === "spectre") {
+            sw = player.width * 1.85;
+            sh = player.height * 1.7;
         }
         if (sidTex === "destroyer") {
             sw = player.width * 2.0;

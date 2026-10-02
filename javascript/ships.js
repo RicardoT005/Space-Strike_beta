@@ -36,7 +36,7 @@ const SHIP_CATALOG = {
     tank: {
         id: "tank",
         name: "TANQUE",
-        desc: "Parasite armor. Lenta pero muy resistente.",
+        desc: "Blindaje pesado. Lenta pero muy resistente.",
         cost: 500,
         free: false,
         speed: 320,
@@ -45,12 +45,12 @@ const SHIP_CATALOG = {
         damageBonus: 0,
         color: "#c8d0d8",
         accent: "#e8eef5",
-        texture: "spectre"
+        texture: "tank"
     },
     spectre: {
         id: "spectre",
         name: "SPECTRE",
-        desc: "Cadencia alta. Casco frágil.",
+        desc: "Cadencia alta. Casco frágil. Textura heredada del Tanque anterior.",
         cost: 650,
         free: false,
         speed: 410,
@@ -59,7 +59,7 @@ const SHIP_CATALOG = {
         damageBonus: 0,
         color: "#c090ff",
         accent: "#f0e0ff",
-        texture: "tank"
+        texture: "spectre"
     },
     destroyer: {
         id: "destroyer",

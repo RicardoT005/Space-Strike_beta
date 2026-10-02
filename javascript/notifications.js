@@ -4,6 +4,16 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v327",
+        title: "v3.2.7 — RESET RANKING ADMIN",
+        body: "Los admins pueden reiniciar el ranking global desde Ranking o panel de códigos (borra scores y highScore en nube)."
+    },
+    {
+        id: "v326",
+        title: "v3.2.6 — TANQUE / SPECTRE",
+        body: "Textura nueva en TANQUE. La textura anterior del Tanque pasa a SPECTRE."
+    },
+    {
         id: "v321",
         title: "v3.2.4 — MAPA + EQUIPAR",
         body: "Mapa de aventura desde abajo y centrado en tu progreso. Equipar nave prioriza este dispositivo; la nube solo sincroniza al cambiar o en otro celular. Texturas y textos actualizados."
