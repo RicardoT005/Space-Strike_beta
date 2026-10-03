@@ -47,7 +47,7 @@
     <main class="lb" style="position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 14px 40px;">
         <header class="page-header" style="text-align:center;">
             <div class="page-title" style="font-size:clamp(26px,6vw,40px);font-weight:900;letter-spacing:6px;">RANKING</div>
-            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V3.2.7</div>
+            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V3.2.9</div>
         </header>
         <div class="separator" style="width:min(240px,55vw);height:1px;margin:12px 0;background:linear-gradient(90deg,transparent,rgba(0,150,255,0.5),transparent);"></div>
 
@@ -61,8 +61,8 @@
 
         <section id="adminRankingPanel" class="hidden" style="width:min(420px,94vw);margin:14px auto;padding:12px;border:1px solid rgba(255,80,80,0.45);border-radius:8px;background:rgba(40,8,8,0.85);">
             <div style="font-size:12px;letter-spacing:2px;color:#ff8a8a;font-weight:800;margin-bottom:8px;">⚠ PANEL ADMIN · RANKING</div>
-            <p style="font-size:11px;opacity:0.8;margin:0 0 10px;line-height:1.4;">Borra TODO el ranking global y pone highScore de usuarios en 0. No se puede deshacer.</p>
-            <button type="button" id="adminWipeRanking" style="width:100%;height:44px;border-radius:6px;border:1px solid rgba(255,100,100,0.5);background:rgba(120,20,20,0.9);color:#ffe0e0;font-weight:800;letter-spacing:1px;cursor:pointer;">🗑 REINICIAR RANKING GLOBAL</button>
+            <p style="font-size:11px;opacity:0.8;margin:0 0 10px;line-height:1.4;">SOLO DUEÑO. Borra scores + todos los usuarios en la nube y progreso local de este dispositivo.</p>
+            <button type="button" id="adminWipeRanking" style="width:100%;height:44px;border-radius:6px;border:1px solid rgba(255,100,100,0.5);background:rgba(120,20,20,0.9);color:#ffe0e0;font-weight:800;letter-spacing:1px;cursor:pointer;">🗑 WIPE TOTAL (SOLO DUEÑO)</button>
             <div id="adminWipeStatus" style="font-size:11px;margin-top:8px;color:#ffc9c9;"></div>
         </section>
 
@@ -71,7 +71,7 @@
                 &lt; VOLVER AL MENÚ
             </button>
         </section>
-        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V3.2.7</div>
+        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V3.2.9</div>
     </main>
     <div id="transition"></div>
 
@@ -79,6 +79,7 @@
     <script src="../javascript/auth.js"></script>
     <script src="../javascript/premium-codes.js"></script>
     <script src="../javascript/leaderboard-global.js"></script>
+    <script src="../javascript/managers/admin-control.js"></script>
     <script src="../javascript/fullscreen.js"></script>
     <script>
         document.getElementById("backButton").onclick = function () {
@@ -233,8 +234,10 @@
             if (!panel) return;
             var ok = false;
             try {
-                if (window.SpaceStrikeCodes && window.SpaceStrikeCodes.isAdmin) {
-                    ok = !!window.SpaceStrikeCodes.isAdmin();
+                if (window.SpaceStrikeAdmin && window.SpaceStrikeAdmin.isOwner) {
+                    ok = !!window.SpaceStrikeAdmin.isOwner();
+                } else if (window.SpaceStrikeCodes && window.SpaceStrikeCodes.isAdmin) {
+                    ok = false; /* ranking wipe panel: owner only */
                 }
             } catch (e) {}
             if (ok) panel.classList.remove("hidden");
@@ -246,18 +249,20 @@
         var st = document.getElementById("adminWipeStatus");
         if (btn) {
             btn.addEventListener("click", function () {
-                if (!confirm("¿REINICIAR el ranking global?\nSe borrarán TODAS las puntuaciones de la nube.\nEsto NO se puede deshacer.")) return;
+                if (!confirm("¿WIPE TOTAL?\nSe borrarán ranking Y todos los usuarios.\nSolo el dueño. NO se puede deshacer.")) return;
                 if (!confirm("Confirma de nuevo: borrar ranking completo y high scores de usuarios.")) return;
                 st.textContent = "Borrando… espera…";
                 btn.disabled = true;
                 var api = window.SpaceStrikeGlobalLB;
-                var fn = api && (api.wipeRankingAndScores || api.resetGlobalRanking);
+                var fn = (window.SpaceStrikeAdmin && window.SpaceStrikeAdmin.totalWipe)
+                    || (api && (api.wipeRankingAndScores || api.resetGlobalRanking));
                 if (!fn) {
                     st.textContent = "API no disponible";
                     btn.disabled = false;
                     return;
                 }
-                Promise.resolve(fn.call(api)).then(function (res) {
+                var ctx = window.SpaceStrikeAdmin && window.SpaceStrikeAdmin.totalWipe ? window.SpaceStrikeAdmin : api;
+                Promise.resolve(fn.call(ctx, {})).then(function (res) {
                     btn.disabled = false;
                     if (res && res.ok) {
                         st.textContent = res.message || ("Listo. Borrados: " + (res.deleted || 0));

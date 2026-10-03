@@ -37,11 +37,24 @@
     }
 
     function isAdmin() {
+        try {
+            if (window.SpaceStrikeAdmin && typeof window.SpaceStrikeAdmin.isAdmin === "function") {
+                return !!window.SpaceStrikeAdmin.isAdmin();
+            }
+        } catch (e) {}
         var email = getAdminEmail();
         if (!email) return false;
         return ADMIN_EMAILS.some(function (a) {
             return email === String(a).toLowerCase().trim();
         });
+    }
+    function isOwner() {
+        try {
+            if (window.SpaceStrikeAdmin && typeof window.SpaceStrikeAdmin.isOwner === "function") {
+                return !!window.SpaceStrikeAdmin.isOwner();
+            }
+        } catch (e) {}
+        return getAdminEmail() === "ricardotorresgalvez005@gmail.com";
     }
 
     function normalizeCode(code) {
@@ -480,6 +493,7 @@
         deleteUserData: deleteUserData,
         setUserPremium: setUserPremium,
         isAdmin: isAdmin,
+        isOwner: isOwner,
         getAdminEmail: getAdminEmail,
         ADMIN_EMAILS: ADMIN_EMAILS,
         ADMIN_EMAIL: ADMIN_EMAILS[0]

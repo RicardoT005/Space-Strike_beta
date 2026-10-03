@@ -706,3 +706,35 @@ if (
         window.open("https://whatsapp.com/channel/0029Vb9gFED3WHTQSFnafp2V", "_blank");
     });
 })();
+
+
+/* Admin: show send-notice button */
+(function () {
+    function refreshAdminNoticeBtn() {
+        var btn = document.getElementById("sendNoticeButton");
+        if (!btn) return;
+        var ok = false;
+        try {
+            if (window.SpaceStrikeAdmin && window.SpaceStrikeAdmin.isAdmin) {
+                ok = !!window.SpaceStrikeAdmin.isAdmin();
+            } else if (window.SpaceStrikeCodes && window.SpaceStrikeCodes.isAdmin) {
+                ok = !!window.SpaceStrikeCodes.isAdmin();
+            }
+        } catch (e) {}
+        if (ok) {
+            btn.classList.remove("hidden");
+            btn.style.display = "";
+        } else {
+            btn.classList.add("hidden");
+        }
+    }
+    var btn = document.getElementById("sendNoticeButton");
+    if (btn) {
+        btn.addEventListener("click", function () {
+            location.href = "html/send-notice.html";
+        });
+    }
+    setTimeout(refreshAdminNoticeBtn, 900);
+    setTimeout(refreshAdminNoticeBtn, 2500);
+    setTimeout(refreshAdminNoticeBtn, 5000);
+})();

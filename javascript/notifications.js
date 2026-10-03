@@ -4,6 +4,16 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v329",
+        title: "v3.2.9 — AVISOS EN VIVO",
+        body: "Puedes activar notificaciones del navegador para noticias, eventos y códigos limitados. Los admins publican desde ENVIAR AVISO."
+    },
+    {
+        id: "v328",
+        title: "v3.2.8 — SUPER ADMIN",
+        body: "Panel dueño: wipe total de progreso y gestión de admins. Solo ricardotorresgalvez005@gmail.com."
+    },
+    {
         id: "v327",
         title: "v3.2.7 — RESET RANKING ADMIN",
         body: "Los admins pueden reiniciar el ranking global desde Ranking o panel de códigos (borra scores y highScore en nube)."
