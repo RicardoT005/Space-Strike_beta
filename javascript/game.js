@@ -324,16 +324,32 @@ function hasSavedProgress() {
 
 
 function persistHighScore() {
-
+    var val = Math.max(0, Math.floor(game.highScore || 0));
     try {
-        localStorage.setItem(
-            "spaceStrikeHighScore",
-            String(Math.max(0, Math.floor(game.highScore)))
-        );
+        if (navigator.onLine === false) {
+            /* Solo offline: buffer temporal */
+            localStorage.setItem("spaceStrikeOfflineHighScore", String(Math.max(
+                val,
+                Number(localStorage.getItem("spaceStrikeOfflineHighScore") || 0)
+            )));
+            localStorage.setItem("spaceStrikeHighScore", String(val));
+        } else {
+            /* Online: espejo mínimo para HUD; no ranking local */
+            localStorage.setItem("spaceStrikeHighScore", String(val));
+            try {
+                localStorage.removeItem("spaceStrikeLeaderboard");
+                localStorage.removeItem("spaceStrikeOfflineBoard");
+            } catch (e2) {}
+            /* Subir a nube si hay API */
+            try {
+                if (window.SpaceStrikeLeaderboard && window.SpaceStrikeLeaderboard.syncLocalBest) {
+                    window.SpaceStrikeLeaderboard.syncLocalBest();
+                }
+            } catch (e3) {}
+        }
     } catch (e) {
         // silent
     }
-
 }
 
 
@@ -1356,7 +1372,7 @@ function applyOwnedUpgrades() {
                 player.baseSpeed = 400;
                 player.baseFireRate = 145;
                 player.shipMaxHealth = 5;
-                player.specialStats = { vt03Ship: true, doubleCannon: true, bulletColor: "#fbbf24", laserChance: 0.05 };
+                player.specialStats = { vt03Ship: true, doubleCannon: true, bulletColor: "#fbbf24", laserChance: 0.32 };
                 player.specialBulletColor = "#fbbf24";
                 player.doubleCannon = true;
             }
@@ -1450,6 +1466,17 @@ function applyOwnedUpgrades() {
         player.specialShip = true;
         player.vt03Ship = true;
         player.vt03Phase = player.vt03Phase || 1;
+        /* Arsenal solo en fase 1 (armada) */
+        if (player.vt03Phase === 1) {
+            player.doubleCannon = true;
+            player.specialLaserChance = Math.max(player.specialLaserChance || 0, 0.32);
+            player.specialBulletColor = player.specialBulletColor || "#fbbf24";
+        } else {
+            player.specialLaserChance = 0;
+            player.doubleCannon = false;
+            player.multiShot = false;
+        }
+
         player.specialBulletColor = "#fbbf24";
         player.doubleCannon = true;
         if (typeof ensureVt03Sprites === "function") {
@@ -2258,12 +2285,18 @@ function drawPlayer() {
 ================================================================ */
 
 function getMissileSalvoCount() {
+    /* VT-03 phase 2 (caza): sin misiles */
+    if (player.vt03Ship && player.vt03Phase === 2) return 0;
     /* base 1 if destroyer OR any missile upgrade; + levels */
     var base = 0;
     if (player.shipId === "destroyer" || player.missileCountLv > 0 || player.missileDamageLv > 0 || player.missileBlastLv > 0) {
         base = 1;
     }
     if (player.shipId === "destroyer") base = Math.max(base, 1);
+    /* VT-03 phase 1 (armada): bombardero con misiles teledirigidos */
+    if (player.vt03Ship && player.vt03Phase === 1) {
+        base = Math.max(base, 2);
+    }
     return Math.min(5, base + (player.missileCountLv || 0));
 }
 
@@ -2615,31 +2648,43 @@ function attemptPlayerFire() {
     const useDouble = player.doubleCannon === true;
     const useMulti = player.multiShot === true;
 
+    /* VT-03: fase 1 = arsenal completo; fase 2 = solo balas normales */
+    var vt03Armed = !!(player.vt03Ship && player.vt03Phase === 1);
+    var vt03Fighter = !!(player.vt03Ship && player.vt03Phase === 2);
+
     var laserChance = player.specialLaserChance || 0;
     if (player.nebulaShip && player.nebulaStormActive > 0) laserChance = 1;
-    const isLaser = player.specialShip && Math.random() < laserChance;
-    const rpdPenta = player.rpdShip && player.rpdPentaActive > 0;
-    const bColor = player.specialBulletColor || null;
+    if (vt03Armed) laserChance = Math.max(laserChance, 0.32);
+    if (vt03Fighter) laserChance = 0;
+    const isLaser = !vt03Fighter && player.specialShip && Math.random() < laserChance;
+    const rpdPenta = !vt03Fighter && player.rpdShip && player.rpdPentaActive > 0;
+    const bColor = vt03Fighter ? "#d1d5db" : (player.specialBulletColor || null);
 
     function pushShot(ox, vx, laser) {
+        if (vt03Fighter) laser = false;
         playerProjectiles.push({
             x: player.x + (ox || 0),
             y: muzzleY,
             radius: laser ? 2 : 3,
-            speed: laser ? 1100 : 760,
+            speed: laser ? 1100 : (vt03Fighter ? 820 : 760),
             damage: laser ? dmg + 1 : dmg,
-            pierce: laser ? true : pierce,
+            pierce: laser ? true : (vt03Fighter ? false : pierce),
             vx: vx || 0,
             color: laser ? "#ff6b9d" : bColor,
             laser: !!laser
         });
     }
 
-    /* Nebula: doble cañón fijo. R.P.D.: penta si activo */
-    const forceDouble = !!(player.specialStats && player.specialStats.doubleCannon);
-    const doubleOn = useDouble || forceDouble;
+    /* Nebula/VT-03 armada: doble cañón. Fase 2: un solo cañón simple */
+    const forceDouble = !vt03Fighter && !!(player.specialStats && player.specialStats.doubleCannon);
+    const doubleOn = !vt03Fighter && (useDouble || forceDouble);
+    const multiOn = !vt03Fighter && useMulti;
 
-    if (rpdPenta) {
+    if (vt03Fighter) {
+        /* Modo caza: solo balas normales (rápido, sin extras) */
+        pushShot(0, 0, false);
+        createMuzzleParticles(player.x, player.y - 27);
+    } else if (rpdPenta) {
         /* 5 direcciones (abanico amplio hacia arriba) */
         pushShot(0, 0, false);
         pushShot(-10, -110, false);
@@ -2647,14 +2692,14 @@ function attemptPlayerFire() {
         pushShot(-18, -200, false);
         pushShot(18, 200, false);
         createMuzzleParticles(player.x, player.y - 27);
-    } else if (doubleOn && useMulti) {
+    } else if (doubleOn && multiOn) {
         pushShot(-14, -70, isLaser);
         pushShot(-6, -20, isLaser);
         pushShot(6, 20, isLaser);
         pushShot(14, 70, isLaser);
         createMuzzleParticles(player.x - 10, player.y - 27);
         createMuzzleParticles(player.x + 10, player.y - 27);
-    } else if (useMulti) {
+    } else if (multiOn) {
         pushShot(0, 0, isLaser);
         pushShot(-12, -80, isLaser);
         pushShot(12, 80, isLaser);
@@ -5825,10 +5870,15 @@ function activateVt03Transform() {
 
     player.vt03Phase = 2;
     player.vt03TransformCd = 999; /* once per run until reset */
-    /* boost fighter mode */
-    player.speed = (player.baseSpeed || 400) * 1.35;
-    player.fireRate = Math.max(90, (player.baseFireRate || 145) * 0.72);
+    /* Modo caza: velocidad alta, solo balas — se pierde arsenal pesado */
+    player.speed = (player.baseSpeed || 400) * 1.45;
+    player.fireRate = Math.max(75, (player.baseFireRate || 145) * 0.55);
     player.width = Math.max(28, (player.width || 36) * 0.85);
+    player.specialLaserChance = 0;
+    player.doubleCannon = false;
+    player.multiShot = false;
+    player.pierce = false;
+    player.missileCooldown = 9999;
 
     if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
 
@@ -5860,7 +5910,7 @@ function activateVt03Transform() {
         }
     } catch (eP) {}
 
-    if (systemStatus) systemStatus.textContent = "VT-03 · MODO CAZA — ALAS EXPULSADAS";
+    if (systemStatus) systemStatus.textContent = "VT-03 · MODO CAZA — sin misiles/láser, solo balas · velocidad+";
     playSound("level");
     triggerVibration([40, 30, 40]);
     game.screenShake = Math.max(game.screenShake || 0, 8);

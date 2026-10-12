@@ -158,6 +158,24 @@
         }
     }
 
+    
+    /** Online + cloud OK: clear offline backup only (runtime still mirrors cloud in localStorage as cache). */
+    function purgeLocalCacheAfterCloud() {
+        try {
+            if (!navigator.onLine) return;
+            localStorage.removeItem("spaceStrikeOfflineBackup");
+        } catch (e2) {}
+    }
+
+    function writeOfflineBackup(data) {
+        try {
+            localStorage.setItem(
+                "spaceStrikeOfflineBackup",
+                JSON.stringify({ at: Date.now(), data: data || collectLocalProgress() })
+            );
+        } catch (e) {}
+    }
+
     function pushCloud() {
         var u = currentUser();
         if (!u || !db) return Promise.resolve({ ok: false, reason: "nologin" });
@@ -220,7 +238,7 @@
                 });
             }
             applyCloudProgress(merged);
-            return db.collection("users").doc(u.uid).set(merged, { merge: true }).then(function () {
+            return db.collection("users").doc(u.uid).set(merged, { merge: true }).then(function(r){ try { purgeLocalCacheAfterCloud(); } catch(eP){} return r; }).then(function () {
                 return { ok: true, merged: true };
             });
         });

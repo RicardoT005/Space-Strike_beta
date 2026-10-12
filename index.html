@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+      /* Firebase Console → Project settings → Cloud Messaging → Web Push certificates → Key pair */
+      window.SPACE_STRIKE_VAPID_KEY = "BDJp_JVLC1-r1yqd-1u04kW4AFYuJ3NjMpwYapEg5Ww85PIYaRLxfF0gux3DCzCzffmkD41ieu-FsSC3PSLe9JY";
+      /* If site is on GitHub Pages, set full Netlify function URL: */
+      /* window.SPACE_STRIKE_FCM_URL = "https://TU-SITIO.netlify.app/.netlify/functions/send-fcm"; */
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SPACE STRIKE — Multisoft Creations">
@@ -42,7 +49,7 @@
         </section>
 
         <div class="bottom-info">SYSTEM READY // AWAITING PILOT</div>
-        <div class="version">V3.2.9</div>
+        <div class="version">V3.3.3</div>
     </main>
 
     <!-- Register modal -->
@@ -81,6 +88,7 @@
         <script src="javascript/managers/ad-manager.js"></script>
 <script src="javascript/managers/admin-control.js"></script>
     <script src="javascript/managers/push-announcements.js"></script>
+    <script src="javascript/managers/scheduled-jobs.js"></script>
     <script src="javascript/index.js" defer></script>
     <script src="javascript/fullscreen.js"></script>
 </body>

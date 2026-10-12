@@ -112,6 +112,20 @@ function saveLeaderboard(list) {
     } catch (e) {}
 }
 
+/** Ranking local SOLO si no hay internet (buffer offline). Con red no se escribe. */
+function isOnline() {
+    try { return navigator.onLine !== false; } catch (e) { return true; }
+}
+
+function clearLocalRankingTraces() {
+    try {
+        localStorage.removeItem(LEADERBOARD_KEY);
+        localStorage.removeItem("spaceStrikeOfflineBoard");
+        localStorage.removeItem("spaceStrikeOfflineHighScore");
+        /* highScore en local solo espejo de nube: se limpia ranking list, no el número de HUD si viene de cloud */
+    } catch (e) {}
+}
+
 /** Submit infinite mode score for ranking */
 function submitScore(score, wave) {
     const profile = loadProfile();
@@ -126,6 +140,20 @@ function submitScore(score, wave) {
         saveProfile(profile);
     }
 
+    /* Online: no ranking local permanente */
+    if (isOnline()) {
+        clearLocalRankingTraces();
+        return { ok: true, board: [], offline: false };
+    }
+
+    /* Offline: buffer temporal para subir al recuperar red */
+    try {
+        localStorage.setItem("spaceStrikeOfflineHighScore", String(Math.max(
+            score,
+            Number(localStorage.getItem("spaceStrikeOfflineHighScore") || 0)
+        )));
+    } catch (e0) {}
+
     const list = loadLeaderboard();
     list.push({
         name: profile.name,
@@ -138,7 +166,6 @@ function submitScore(score, wave) {
         return b.score - a.score || b.wave - a.wave;
     });
 
-    /* Keep best entry per name */
     const seen = {};
     const unique = [];
     for (let i = 0; i < list.length; i++) {
@@ -149,7 +176,10 @@ function submitScore(score, wave) {
     }
 
     saveLeaderboard(unique);
-    return { ok: true, board: unique };
+    try {
+        localStorage.setItem("spaceStrikeOfflineBoard", JSON.stringify(unique.slice(0, 20)));
+    } catch (e1) {}
+    return { ok: true, board: unique, offline: true };
 }
 
 if (typeof window !== "undefined") {
@@ -162,6 +192,8 @@ if (typeof window !== "undefined") {
         getName: getPlayerName,
         loadLeaderboard: loadLeaderboard,
         getLeaderboard: loadLeaderboard,
-        submitScore: submitScore
+        submitScore: submitScore,
+        clearLocalRankingTraces: clearLocalRankingTraces,
+        isOnline: isOnline
     };
 }

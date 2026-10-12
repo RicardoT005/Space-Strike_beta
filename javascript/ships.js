@@ -106,7 +106,7 @@ const SHIP_CATALOG = {
     vt03: {
         id: "vt03",
         name: "VT-03 VANGUARD ★★",
-        desc: "PREMIUM. Fase 1 bombardero · Fase 2 caza (suelta alas). Habilidad TRANSFORMAR.",
+        desc: "PREMIUM. Fase 1 armada: misiles+láser+doble cañón. Fase 2 caza: solo balas, mucha velocidad. TRANSFORMAR es irreversible en la partida.",
         cost: 0,
         free: false,
         premium: true,
@@ -121,7 +121,7 @@ const SHIP_CATALOG = {
             vt03Ship: true,
             doubleCannon: true,
             bulletColor: "#fbbf24",
-            laserChance: 0.05
+            laserChance: 0.32
         }
     },
     nebula: {

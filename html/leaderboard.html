@@ -47,15 +47,14 @@
     <main class="lb" style="position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 14px 40px;">
         <header class="page-header" style="text-align:center;">
             <div class="page-title" style="font-size:clamp(26px,6vw,40px);font-weight:900;letter-spacing:6px;">RANKING</div>
-            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V3.2.9</div>
+            <div class="page-subtitle" style="margin-top:6px;font-size:11px;letter-spacing:3px;color:rgba(140,190,255,0.55);">GLOBAL // V3.3.3</div>
         </header>
         <div class="separator" style="width:min(240px,55vw);height:1px;margin:12px 0;background:linear-gradient(90deg,transparent,rgba(0,150,255,0.5),transparent);"></div>
 
         <div class="tabs">
-            <button type="button" class="tab active" id="tabGlobal">GLOBAL</button>
-            <button type="button" class="tab" id="tabLocal">LOCAL</button>
+            <button type="button" class="tab active" id="tabGlobal">GLOBAL (nube)</button>
         </div>
-        <button type="button" id="syncMyScore" class="tab" style="width:min(420px,94vw);margin-bottom:10px;height:40px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,200,80,0.4);background:rgba(40,30,10,0.85);color:#ffe6a8;font-weight:700;letter-spacing:1px;">☁ SUBIR MI RÉCORD LOCAL</button>
+        <p id="offlineHint" style="display:none;width:min(420px,94vw);font-size:11px;color:#fbbf24;margin:0 0 10px;line-height:1.35;">Sin conexión: el score se guarda temporalmente y se sube solo al recuperar internet. Luego se borra el rastro local.</p>
         <div id="statusMsg" class="status-msg">Cargando ranking global…</div>
         <section id="list" style="width:min(420px,94vw);"></section>
 
@@ -71,7 +70,7 @@
                 &lt; VOLVER AL MENÚ
             </button>
         </section>
-        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V3.2.9</div>
+        <div class="version" style="position:fixed;left:12px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(120,160,200,0.4);">V3.3.3</div>
     </main>
     <div id="transition"></div>
 
@@ -154,7 +153,7 @@
                     if (!rows || !rows.length) {
                         msg.textContent = err
                             ? ("Error: " + err)
-                            : "Global vacío — toca SUBIR MI RÉCORD o juega Infinito";
+                            : "Global vacío — juega Infinito (con internet se sube solo)";
                     } else {
                         msg.textContent = "Top global (" + rows.length + ")" + (extra ? " · " + extra : "");
                     }
@@ -184,7 +183,7 @@
             }
         }
 
-        var syncBtn = document.getElementById("syncMyScore");
+        var syncBtn = null; /* local ranking eliminado */
         if (syncBtn) {
             syncBtn.onclick = function () {
                 var msg = document.getElementById("statusMsg");
@@ -205,15 +204,34 @@
         }
 
         document.getElementById("tabGlobal").onclick = function () {
-            document.getElementById("tabGlobal").classList.add("active");
-            document.getElementById("tabLocal").classList.remove("active");
             loadGlobal();
         };
-        document.getElementById("tabLocal").onclick = function () {
-            document.getElementById("tabLocal").classList.add("active");
-            document.getElementById("tabGlobal").classList.remove("active");
-            loadLocal();
-        };
+
+        try {
+            var oh = document.getElementById("offlineHint");
+            if (oh) oh.style.display = (navigator.onLine === false) ? "block" : "none";
+            window.addEventListener("online", function () {
+                if (oh) oh.style.display = "none";
+                if (window.SpaceStrikeGlobalLB && window.SpaceStrikeGlobalLB.syncLocalBest) {
+                    window.SpaceStrikeGlobalLB.syncLocalBest().then(function () {
+                        try {
+                            if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.clearLocalRankingTraces) {
+                                window.SpaceStrikePlayer.clearLocalRankingTraces();
+                            }
+                        } catch (e) {}
+                        loadGlobal();
+                    });
+                } else {
+                    loadGlobal();
+                }
+            });
+            window.addEventListener("offline", function () {
+                if (oh) oh.style.display = "block";
+            });
+            if (navigator.onLine !== false && window.SpaceStrikePlayer && window.SpaceStrikePlayer.clearLocalRankingTraces) {
+                window.SpaceStrikePlayer.clearLocalRankingTraces();
+            }
+        } catch (eNet) {}
 
         loadGlobal();
     </script>

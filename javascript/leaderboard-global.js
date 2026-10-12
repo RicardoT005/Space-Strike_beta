@@ -272,6 +272,8 @@
         try {
             var hs = Number(localStorage.getItem("spaceStrikeHighScore") || 0);
             if (Number.isFinite(hs) && hs > best) best = Math.floor(hs);
+            var off = Number(localStorage.getItem("spaceStrikeOfflineHighScore") || 0);
+            if (Number.isFinite(off) && off > best) best = Math.floor(off);
         } catch (e0) {}
 
         try {
@@ -309,6 +311,15 @@
 
         return submitScore(name, best, bestWave).then(function (res) {
             if (res && res.ok) {
+                try {
+                    if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.clearLocalRankingTraces) {
+                        window.SpaceStrikePlayer.clearLocalRankingTraces();
+                    } else {
+                        localStorage.removeItem("spaceStrikeLeaderboard");
+                        localStorage.removeItem("spaceStrikeOfflineBoard");
+                        localStorage.removeItem("spaceStrikeOfflineHighScore");
+                    }
+                } catch (eClr) {}
                 return Object.assign({ score: best, wave: bestWave, name: name }, res);
             }
             return res || { ok: false, reason: "error" };
@@ -427,6 +438,36 @@
         });
     }
 
+
+    function clearLocalRankingIfOnline() {
+        try {
+            if (navigator.onLine === false) return;
+            if (window.SpaceStrikePlayer && window.SpaceStrikePlayer.clearLocalRankingTraces) {
+                window.SpaceStrikePlayer.clearLocalRankingTraces();
+            } else {
+                localStorage.removeItem("spaceStrikeLeaderboard");
+                localStorage.removeItem("spaceStrikeOfflineBoard");
+                localStorage.removeItem("spaceStrikeOfflineHighScore");
+            }
+        } catch (e) {}
+    }
+
+    function onReconnectSync() {
+        if (navigator.onLine === false) return;
+        syncLocalBest().then(function () {
+            clearLocalRankingIfOnline();
+        }).catch(function () {
+            clearLocalRankingIfOnline();
+        });
+    }
+
+    if (typeof window !== "undefined") {
+        window.addEventListener("online", function () { onReconnectSync(); });
+        setTimeout(function () {
+            if (navigator.onLine !== false) onReconnectSync();
+        }, 2500);
+    }
+
 window.SpaceStrikeGlobalLB = {
         resetGlobalRanking: resetGlobalRanking,
         resetAllUsersHighScores: resetAllUsersHighScores,
@@ -435,9 +476,11 @@ window.SpaceStrikeGlobalLB = {
         submit: submitScore,
         top: fetchTop,
         syncLocalBest: syncLocalBest,
+        clearLocalRankingIfOnline: clearLocalRankingIfOnline,
         markPremium: markPremium,
         nameToId: nameToId,
         isReady: function () { return ready; },
         lastError: function () { return lastError; }
     };
 })();
+

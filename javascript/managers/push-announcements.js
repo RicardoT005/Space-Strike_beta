@@ -1,11 +1,19 @@
-/* SPACE STRIKE — Cloud announcements + browser notifications (admins publish) */
+/* SPACE STRIKE — Cloud announcements + FCM (works when app closed) */
 (function (global) {
     "use strict";
 
     var COL = "announcements";
+    var TOKENS_COL = "fcmTokens";
     var SEEN_KEY = "spaceStrikeAnnouncementsSeen";
     var PERM_ASKED_KEY = "spaceStrikeNotifPermAsked";
+    /* Firebase Console → Project settings → Cloud Messaging → Web Push certificates */
+    var VAPID_KEY = global.SPACE_STRIKE_VAPID_KEY || "";
+    var SEND_URL = "/.netlify/functions/send-fcm";
+    /* GitHub Pages fallback: set full Netlify function URL if hosting on GH Pages */
+    var SEND_URL_FALLBACK = global.SPACE_STRIKE_FCM_URL || "";
+
     var unsub = null;
+    var messaging = null;
 
     function getDb() {
         try {
@@ -53,9 +61,6 @@
         return Notification.permission;
     }
 
-    /**
-     * Explain + request permission (like Gmail / WhatsApp style prompt in-page first).
-     */
     function requestPermissionWithExplain() {
         return new Promise(function (resolve) {
             if (!notifSupported()) {
@@ -70,16 +75,15 @@
                 resolve({ ok: false, permission: "denied" });
                 return;
             }
-
             var msg =
                 "SPACE STRIKE quiere enviarte notificaciones.\n\n" +
                 "Sirven para:\n" +
-                "• Noticias y actualizaciones del juego\n" +
+                "• Noticias y actualizaciones\n" +
                 "• Eventos especiales\n" +
                 "• Códigos de uso limitado / recompensas\n" +
-                "• Avisos importantes del equipo\n\n" +
+                "• Avisos importantes\n\n" +
+                "Funcionan aunque cierres la página (si el sistema lo permite).\n\n" +
                 "¿Permitir notificaciones?";
-
             if (!confirm(msg)) {
                 try {
                     localStorage.setItem(PERM_ASKED_KEY, "1");
@@ -87,7 +91,6 @@
                 resolve({ ok: false, permission: "dismissed" });
                 return;
             }
-
             Notification.requestPermission().then(function (perm) {
                 try {
                     localStorage.setItem(PERM_ASKED_KEY, "1");
@@ -99,17 +102,141 @@
         });
     }
 
-    function maybeAskPermissionOnce() {
+    function loadMessagingScript() {
+        return new Promise(function (resolve, reject) {
+            if (global.firebase && firebase.messaging) {
+                resolve();
+                return;
+            }
+            var s = document.createElement("script");
+            s.src = "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js";
+            s.onload = function () {
+                resolve();
+            };
+            s.onerror = function () {
+                reject(new Error("messaging script"));
+            };
+            document.head.appendChild(s);
+        });
+    }
+
+    function registerServiceWorker() {
+        if (!("serviceWorker" in navigator)) return Promise.resolve(null);
+        var swUrl = "firebase-messaging-sw.js";
         try {
-            if (localStorage.getItem(PERM_ASKED_KEY) === "1") return Promise.resolve(permissionState());
+            if (location.pathname.indexOf("/html/") >= 0) swUrl = "../firebase-messaging-sw.js";
         } catch (e) {}
-        /* delay so menu paints first */
-        return new Promise(function (resolve) {
-            setTimeout(function () {
-                requestPermissionWithExplain().then(function (r) {
-                    resolve(r.permission || permissionState());
+        return navigator.serviceWorker.register(swUrl).catch(function (err) {
+            console.warn("[FCM] SW register", err);
+            return null;
+        });
+    }
+
+    function saveToken(token) {
+        var db = getDb();
+        if (!db || !token) return Promise.resolve();
+        var uid = "anon";
+        try {
+            if (global.SpaceStrikeAuth && global.SpaceStrikeAuth.user) {
+                var u = global.SpaceStrikeAuth.user();
+                if (u && u.uid) uid = u.uid;
+            }
+        } catch (e) {}
+        var id = uid + "_" + String(token).slice(-24);
+        return db
+            .collection(TOKENS_COL)
+            .doc(id)
+            .set(
+                {
+                    token: token,
+                    uid: uid,
+                    updatedAt: Date.now(),
+                    ua: (navigator.userAgent || "").slice(0, 180)
+                },
+                { merge: true }
+            )
+            .catch(function (err) {
+                console.warn("[FCM] save token", err);
+            });
+    }
+
+    function subscribeFcm() {
+        if (!VAPID_KEY) {
+            console.warn("[FCM] Define window.SPACE_STRIKE_VAPID_KEY (clave Web Push de Firebase)");
+            return Promise.resolve({ ok: false, error: "Sin VAPID key" });
+        }
+        return ensureFirebase()
+            .then(function () {
+                return loadMessagingScript();
+            })
+            .then(function () {
+                return registerServiceWorker();
+            })
+            .then(function () {
+                if (!firebase.messaging) throw new Error("messaging API missing");
+                messaging = firebase.messaging();
+                return messaging.getToken({ vapidKey: VAPID_KEY });
+            })
+            .then(function (token) {
+                if (!token) return { ok: false, error: "Sin token" };
+                return saveToken(token).then(function () {
+                    return { ok: true, token: token };
                 });
-            }, 2500);
+            })
+            .catch(function (err) {
+                console.warn("[FCM] subscribe", err);
+                return { ok: false, error: String(err && err.message || err) };
+            });
+    }
+
+    function collectAllTokens() {
+        var db = getDb();
+        if (!db) return Promise.resolve([]);
+        return db
+            .collection(TOKENS_COL)
+            .limit(500)
+            .get()
+            .then(function (snap) {
+                var tokens = [];
+                var seen = {};
+                snap.forEach(function (doc) {
+                    var t = (doc.data() || {}).token;
+                    if (t && !seen[t]) {
+                        seen[t] = true;
+                        tokens.push(t);
+                    }
+                });
+                return tokens;
+            })
+            .catch(function () {
+                return [];
+            });
+    }
+
+    function sendFcmToAll(title, body, type) {
+        return collectAllTokens().then(function (tokens) {
+            if (!tokens.length) {
+                return { ok: false, error: "No hay dispositivos suscritos aún", sent: 0 };
+            }
+            var url = SEND_URL_FALLBACK || SEND_URL;
+            return fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: title, body: body, type: type || "news", tokens: tokens })
+            })
+                .then(function (r) {
+                    return r.json().catch(function () {
+                        return { ok: false, error: "Respuesta inválida" };
+                    });
+                })
+                .catch(function (err) {
+                    return {
+                        ok: false,
+                        error:
+                            String(err && err.message || err) +
+                            " — Si usas GitHub Pages, configura SPACE_STRIKE_FCM_URL a tu función Netlify"
+                    };
+                });
         });
     }
 
@@ -119,8 +246,7 @@
             var n = new Notification(title || "SPACE STRIKE", {
                 body: body || "",
                 tag: tag || "ss-announcement",
-                icon: "img/marca.png",
-                badge: "img/marca.png"
+                icon: "img/marca.png"
             });
             n.onclick = function () {
                 try {
@@ -186,7 +312,6 @@
                     unsub();
                 } catch (e) {}
             }
-            /* last 15 by time */
             unsub = db
                 .collection(COL)
                 .orderBy("createdAt", "desc")
@@ -194,9 +319,7 @@
                 .onSnapshot(
                     function (snap) {
                         snap.docChanges().forEach(function (change) {
-                            if (change.type === "added") {
-                                handleAnnouncement(change.doc);
-                            }
+                            if (change.type === "added") handleAnnouncement(change.doc);
                         });
                     },
                     function (err) {
@@ -239,7 +362,10 @@
                     by: email
                 })
                 .then(function (ref) {
-                    return { ok: true, id: ref.id };
+                    /* also try FCM push to closed apps */
+                    return sendFcmToAll(title, body, type).then(function (fcm) {
+                        return { ok: true, id: ref.id, fcm: fcm };
+                    });
                 });
         }).catch(function (err) {
             return { ok: false, error: String(err && err.message || err) };
@@ -274,26 +400,29 @@
         });
     }
 
-    global.SpaceStrikePush = {
-        requestPermissionWithExplain: requestPermissionWithExplain,
-        maybeAskPermissionOnce: maybeAskPermissionOnce,
-        permissionState: permissionState,
-        listen: listen,
-        publish: publish,
-        listRecent: listRecent,
-        showBrowserNotification: showBrowserNotification
-    };
-
     function boot() {
-        maybeAskPermissionOnce();
+        requestPermissionWithExplain().then(function (r) {
+            if (r && r.ok) subscribeFcm();
+        });
         listen();
     }
 
+    global.SpaceStrikePush = {
+        requestPermissionWithExplain: requestPermissionWithExplain,
+        permissionState: permissionState,
+        subscribeFcm: subscribeFcm,
+        listen: listen,
+        publish: publish,
+        listRecent: listRecent,
+        sendFcmToAll: sendFcmToAll,
+        showBrowserNotification: showBrowserNotification
+    };
+
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () {
-            setTimeout(boot, 400);
+            setTimeout(boot, 600);
         });
     } else {
-        setTimeout(boot, 400);
+        setTimeout(boot, 600);
     }
 })(typeof window !== "undefined" ? window : this);

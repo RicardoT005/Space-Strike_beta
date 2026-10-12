@@ -4,6 +4,21 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v333",
+        title: "v3.3.3 — Ranking solo nube",
+        body: "El ranking local permanente se eliminó. Solo se usa buffer offline si no hay internet; al reconectar se sube y se borra."
+    },
+    {
+        id: "v332",
+        title: "v3.3.2 — VT-03 ARSENAL",
+        body: "VT-03 fase 1 (armada): misiles, láser y doble cañón. Al TRANSFORMAR (fase 2): solo balas normales a alta velocidad. Quédate armado el máximo posible."
+    },
+    {
+        id: "v330",
+        title: "v3.3.0 — PUSH + PROGRAMACIÓN",
+        body: "Notificaciones FCM (con la página cerrada si activaste permisos). Reinicios programados del dueño. Progreso orientado a la nube."
+    },
+    {
         id: "v329",
         title: "v3.2.9 — AVISOS EN VIVO",
         body: "Puedes activar notificaciones del navegador para noticias, eventos y códigos limitados. Los admins publican desde ENVIAR AVISO."

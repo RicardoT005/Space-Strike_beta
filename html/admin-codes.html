@@ -51,12 +51,34 @@ a{color:#7eb6ff}
   <button type="button" id="totalWipeBtn" class="danger">🗑 WIPE TOTAL DE TODO EL PROGRESO</button>
   <pre id="wipeOut"></pre>
 </div>
+
+<div id="panelSchedule" class="hidden">
+  <h2>Reinicio programado (solo dueño)</h2>
+  <p class="hint">El juego procesa el job solo cuando alguien tenga la página abierta después de la fecha, o en cuanto cargue. Para exactitud al minuto, deja una pestaña abierta o entra cerca de la hora.</p>
+  <label class="hint">Fecha y hora local</label>
+  <input id="jobWhen" type="datetime-local">
+  <label class="hint">Alcance</label>
+  <select id="jobScope">
+    <option value="all">Todos (wipe total users+scores)</option>
+    <option value="ranking">Solo ranking (scores)</option>
+    <option value="user">Un jugador (por email de Google)</option>
+  </select>
+  <input id="jobEmail" type="email" placeholder="email del jugador (si alcance = un jugador)">
+  <input id="jobNote" type="text" placeholder="Nota opcional">
+  <button type="button" id="scheduleResetBtn" class="owner">PROGRAMAR REINICIO</button>
+  <button type="button" id="refreshJobsBtn">Ver programados</button>
+  <pre id="jobsOut"></pre>
+</div>
+
 <p style="margin-top:24px"><a href="../index.html">← Volver al menú</a></p>
-<div style="opacity:0.4;font-size:10px;margin-top:12px">V3.2.9</div>
+
+<div style="opacity:0.4;font-size:10px;margin-top:12px">V3.3.3</div>
 <script src="../javascript/auth.js"></script>
 <script src="../javascript/premium-codes.js"></script>
 <script src="../javascript/leaderboard-global.js"></script>
 <script src="../javascript/managers/admin-control.js"></script>
+<script src="../javascript/managers/scheduled-jobs.js"></script>
+<script src="../javascript/managers/push-announcements.js"></script>
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
@@ -76,6 +98,7 @@ a{color:#7eb6ff}
       $("panelCodes").classList.remove("hidden");
       $("panelAdmins").classList.remove("hidden");
       $("panelWipe").classList.remove("hidden");
+      $("panelSchedule").classList.remove("hidden");
       renderAdminList();
     } else if (A && A.isAdmin && A.isAdmin()) {
       badge.textContent = "ADMIN";
@@ -159,7 +182,35 @@ a{color:#7eb6ff}
       $("wipeOut").textContent = JSON.stringify(res, null, 2);
     });
   };
+  
+  if ($("scheduleResetBtn")) {
+    $("scheduleResetBtn").onclick = function () {
+      var A = window.SpaceStrikeJobs;
+      if (!A) { $("jobsOut").textContent = "API jobs no lista"; return; }
+      var whenEl = $("jobWhen");
+      var runAt = whenEl && whenEl.value ? new Date(whenEl.value).getTime() : 0;
+      var scope = $("jobScope").value;
+      A.scheduleReset({
+        runAt: runAt,
+        scope: scope,
+        targetEmail: $("jobEmail").value,
+        note: $("jobNote").value
+      }).then(function (res) {
+        $("jobsOut").textContent = JSON.stringify(res, null, 2);
+      });
+    };
+  }
+  if ($("refreshJobsBtn")) {
+    $("refreshJobsBtn").onclick = function () {
+      var A = window.SpaceStrikeJobs;
+      if (!A) return;
+      A.listJobs(true).then(function (res) {
+        $("jobsOut").textContent = JSON.stringify(res, null, 2);
+      });
+    };
+  }
   function boot() {
+
     var A = window.SpaceStrikeAdmin;
     if (A && A.init) A.init().then(refreshRole);
     else refreshRole();
