@@ -194,38 +194,23 @@ function createStars() {
 ================================================================ */
 
 function navigateTo(page) {
-
-    /*
-        Evita ejecutar la navegación varias veces
-        mientras la transición está activa.
-    */
-
-    if (
-        !transitionScreen ||
-        transitionScreen.classList.contains("active")
-    ) {
+    function go() {
+        if (transitionScreen) {
+            transitionScreen.classList.add("active");
+        }
+        window.setTimeout(function () {
+            window.location.href = page;
+        }, 500);
+    }
+    if (window.SpaceStrikePreloader && !SpaceStrikePreloader.isReady()) {
+        SpaceStrikePreloader.start();
+        SpaceStrikePreloader.waitReady().then(go);
         return;
     }
-
-
-    transitionScreen.classList.add("active");
-
-
-    /*
-        Pequeña pausa para permitir que la animación
-        de salida sea visible antes de cambiar de página.
-    */
-
-    window.setTimeout(() => {
-
-        window.location.href = page;
-
-    }, 500);
-
+    go();
 }
 
-
-/* ================================================================
+/* =====
    INICIAR MISIÓN
 ================================================================ */
 

@@ -7388,19 +7388,21 @@ function initializeGame() {
    BOOT
 ================================================================ */
 
-if (
-    document.readyState === "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeGame
-    );
-
+function __ssStartGameWhenReady() {
+    function run() {
+        if (typeof initializeGame === "function") initializeGame();
+    }
+    if (window.SpaceStrikePreloader && !SpaceStrikePreloader.isReady()) {
+        SpaceStrikePreloader.start();
+        SpaceStrikePreloader.waitReady().then(run);
+    } else {
+        run();
+    }
+}
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", __ssStartGameWhenReady);
 } else {
-
-    initializeGame();
-
+    __ssStartGameWhenReady();
 }
 
 /* Ability hotkeys 2.0.0 */
