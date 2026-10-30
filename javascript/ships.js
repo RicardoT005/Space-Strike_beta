@@ -175,7 +175,32 @@ const SHIP_CATALOG = {
             pentaCd: 18,
             healOrbOnce: true
         }
+    },
+    cempasuchil: {
+        id: "cempasuchil",
+        name: "CEMPASÚCHIL ETERNO ★★",
+        desc: "EVENTO DÍA DE MUERTOS. Control defensivo: VELO · ALTAR DE PÉTALOS · OFRENDA ERRANTE. Código exclusivo.",
+        cost: 0,
+        free: false,
+        special: true,
+        codeOnly: true,
+        event: "dia_muertos_2026",
+        speed: 440,
+        fireRate: 160,
+        maxHealth: 4,
+        damageBonus: 1,
+        color: "#fb923c",
+        accent: "#a78bfa",
+        sprite: "../img/texturas-especiales/cempasuchil-eterno.png",
+        specialStats: {
+            cempasuchilShip: true,
+            doubleCannon: true,
+            bulletColor: "#fb923c",
+            laserChance: 0.08,
+            agility: true
+        }
     }
+
 };
 
 function normalizeOwnedList(list) {

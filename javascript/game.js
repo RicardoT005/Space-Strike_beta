@@ -880,6 +880,9 @@ const touchInput = {
 
 const playerProjectiles = [];
 const homingMissiles = [];
+const cempaPetals = [];
+const cempaSpirits = [];
+const cempaGhostTrail = [];
 
 const enemyProjectiles = [];
 
@@ -986,6 +989,13 @@ loadShipSprite("destroyer", [
     "img/ships/t-wind.png",
     "/img/ships/t-wind.png"
 ]);
+    loadShipSprite("cempasuchil", [
+        "../img/texturas-especiales/cempasuchil-eterno.png",
+        "../img/ships/cempasuchil.png",
+        "img/texturas-especiales/cempasuchil-eterno.png",
+        "img/ships/cempasuchil.png",
+        "/img/texturas-especiales/cempasuchil-eterno.png"
+    ]);
 loadShipSprite("nebula", [
     "../img/texturas-especiales/nave-especial.png",
     "../img/ships/nebula.png",
@@ -1363,6 +1373,31 @@ function applyOwnedUpgrades() {
                 player.rpdPentaCdMax = 18;
                 player.rpdHealOrb = true;
             }
+            if (eq === "cempasuchil") {
+                player.specialShip = true;
+                player.cempasuchilShip = true;
+                player.shipColor = "#fb923c";
+                player.shipAccent = "#a78bfa";
+                player.baseSpeed = 440;
+                player.baseFireRate = 160;
+                player.shipMaxHealth = 4;
+                player.specialStats = {
+                    cempasuchilShip: true,
+                    doubleCannon: true,
+                    bulletColor: "#fb923c",
+                    laserChance: 0.08,
+                    agility: true
+                };
+                player.specialBulletColor = "#fb923c";
+                player.doubleCannon = true;
+                player.cempaVeloCd = 0;
+                player.cempaVeloCdMax = 20;
+                player.cempaAltarCd = 0;
+                player.cempaAltarCdMax = 22;
+                player.cempaOfrendaCd = 0;
+                player.cempaOfrendaCdMax = 24;
+                player.cempaVeloActive = 0;
+            }
             if (eq === "vt03") {
                 player.specialShip = true;
                 player.vt03Ship = true;
@@ -1436,7 +1471,8 @@ function applyOwnedUpgrades() {
     }
     if (player.shipId === "nebula") {
         player.specialShip = true;
-        player.nebulaShip = true;
+        player.cempasuchilShip = !!(player.specialStats && player.specialStats.cempasuchilShip) || player.shipId === "cempasuchil";
+    player.nebulaShip = true;
         if (!player.specialStats) {
             player.specialStats = { doubleCannon: true, agility: true, shieldMax: 3, shieldRegenSec: 60, bulletColor: "#ff3b4a", laserChance: 0.1, nebulaSkills: true };
         }
@@ -2016,6 +2052,10 @@ function drawPlayer() {
 
     /* Textured ships (NEBULA + futuras) */
     var sidTex = player.shipId || "interceptor";
+    if (player.cempasuchilShip || player.shipId === "cempasuchil") {
+        sidTex = "cempasuchil";
+        player.cempasuchilShip = true;
+    }
     if (player.vt03Ship || player.shipId === "vt03") {
         sidTex = "vt03";
         player.vt03Ship = true;
@@ -5308,7 +5348,8 @@ function render() {
 
     drawPlayerProjectiles();
     if (typeof drawHomingMissiles === "function") {
-        drawHomingMissiles();
+        if (typeof drawCempasuchilEffects === 'function') drawCempasuchilEffects(ctx);
+    drawHomingMissiles();
     }
 
     drawEnemyProjectiles();
@@ -5409,7 +5450,8 @@ function update(deltaTime) {
     );
 
     if (typeof updateHomingMissiles === "function") {
-        updateHomingMissiles(deltaTime);
+        if (typeof updateCempasuchil === 'function') updateCempasuchil(deltaTime);
+    updateHomingMissiles(deltaTime);
     }
     if (typeof maybeFireMissiles === "function") {
         maybeFireMissiles(deltaTime);
@@ -5917,6 +5959,239 @@ function activateVt03Transform() {
     return true;
 }
 
+
+/* ========== CEMPASÚCHIL ETERNO (evento Día de Muertos) ========== */
+function activateCempasuchilSkill(slot) {
+    if (!player.cempasuchilShip) return false;
+    if (!game.running || game.paused || game.gameOver) return false;
+
+    if (slot === "emp") {
+        /* VELO DEL MICTLÁN — invuln breve 1.8s, sin boost de velocidad extremo */
+        if ((player.cempaVeloCd || 0) > 0) return false;
+        player.invulnerable = Math.max(player.invulnerable || 0, 1.8);
+        player.cempaVeloActive = 1.8;
+        player.cempaVeloCd = player.cempaVeloCdMax || 20;
+        try {
+            for (var i = 0; i < 10; i++) {
+                createParticle(player.x + (Math.random() - 0.5) * 40, player.y + (Math.random() - 0.5) * 40, {
+                    vx: (Math.random() - 0.5) * 60,
+                    vy: (Math.random() - 0.5) * 60 - 20,
+                    life: 0.6 + Math.random() * 0.4,
+                    size: 2 + Math.random() * 3,
+                    color: i % 2 ? "#fb923c" : "#a78bfa"
+                });
+            }
+        } catch (e) {}
+        if (systemStatus) systemStatus.textContent = "CEMPASÚCHIL · VELO DEL MICTLÁN 1.8s";
+        playSound("level");
+        triggerVibration(20);
+        return true;
+    }
+
+    if (slot === "overdrive") {
+        /* ALTAR DE PÉTALOS — 3 interceptores orbitando */
+        if ((player.cempaAltarCd || 0) > 0) return false;
+        if (cempaPetals.length > 0) return false;
+        player.cempaAltarCd = player.cempaAltarCdMax || 22;
+        cempaPetals.length = 0;
+        for (var p = 0; p < 3; p++) {
+            cempaPetals.push({
+                angle: (Math.PI * 2 * p) / 3,
+                dist: 42,
+                life: 6,
+                alive: true
+            });
+        }
+        if (systemStatus) systemStatus.textContent = "CEMPASÚCHIL · ALTAR DE PÉTALOS (3)";
+        playSound("level");
+        triggerVibration(25);
+        return true;
+    }
+
+    if (slot === "nova") {
+        /* OFRENDA ERRANTE — 5 espíritus guiados */
+        if ((player.cempaOfrendaCd || 0) > 0) return false;
+        player.cempaOfrendaCd = player.cempaOfrendaCdMax || 24;
+        var pool = enemies.filter(function (e) { return e && e.health > 0; });
+        for (var s = 0; s < 5; s++) {
+            var tgt = pool.length ? pool[s % pool.length] : null;
+            var ang = -Math.PI / 2 + (s - 2) * 0.35;
+            cempaSpirits.push({
+                x: player.x + Math.cos(ang) * 12,
+                y: player.y - player.height / 2,
+                vx: Math.cos(ang) * 40,
+                vy: Math.sin(ang) * 40 - 80,
+                speed: 280,
+                damage: Math.max(2, (player.bulletDamage || 1) + 1),
+                life: 3.2,
+                target: tgt,
+                trail: 0
+            });
+        }
+        if (systemStatus) systemStatus.textContent = "CEMPASÚCHIL · OFRENDA ERRANTE ×5";
+        playSound("shoot");
+        triggerVibration(30);
+        return true;
+    }
+    return false;
+}
+
+function updateCempasuchil(dt) {
+    if (!(player.cempasuchilShip || player.shipId === "cempasuchil")) {
+        /* still update effects if leftover */
+    }
+    if (player.cempaVeloCd > 0) player.cempaVeloCd = Math.max(0, player.cempaVeloCd - dt);
+    if (player.cempaAltarCd > 0) player.cempaAltarCd = Math.max(0, player.cempaAltarCd - dt);
+    if (player.cempaOfrendaCd > 0) player.cempaOfrendaCd = Math.max(0, player.cempaOfrendaCd - dt);
+    if (player.cempaVeloActive > 0) player.cempaVeloActive = Math.max(0, player.cempaVeloActive - dt);
+
+    /* Petals orbit + lifetime */
+    for (var i = cempaPetals.length - 1; i >= 0; i--) {
+        var pet = cempaPetals[i];
+        if (!pet.alive) { cempaPetals.splice(i, 1); continue; }
+        pet.life -= dt;
+        pet.angle += 2.2 * dt;
+        pet.x = player.x + Math.cos(pet.angle) * pet.dist;
+        pet.y = player.y + Math.sin(pet.angle) * pet.dist * 0.85;
+        if (pet.life <= 0) cempaPetals.splice(i, 1);
+    }
+
+    /* Intercept enemy projectiles */
+    if (cempaPetals.length && enemyProjectiles.length) {
+        for (var pi = enemyProjectiles.length - 1; pi >= 0; pi--) {
+            var ep = enemyProjectiles[pi];
+            if (!ep) continue;
+            for (var j = cempaPetals.length - 1; j >= 0; j--) {
+                var petal = cempaPetals[j];
+                if (!petal.alive) continue;
+                var dx = (ep.x || 0) - petal.x;
+                var dy = (ep.y || 0) - petal.y;
+                if (dx * dx + dy * dy < 22 * 22) {
+                    enemyProjectiles.splice(pi, 1);
+                    petal.alive = false;
+                    cempaPetals.splice(j, 1);
+                    try {
+                        for (var k = 0; k < 6; k++) {
+                            createParticle(petal.x, petal.y, {
+                                vx: (Math.random() - 0.5) * 100,
+                                vy: (Math.random() - 0.5) * 100,
+                                life: 0.35,
+                                size: 2,
+                                color: k % 2 ? "#fb923c" : "#c4b5fd"
+                            });
+                        }
+                    } catch (e2) {}
+                    break;
+                }
+            }
+        }
+    }
+
+    /* Guided spirits */
+    for (var si = cempaSpirits.length - 1; si >= 0; si--) {
+        var sp = cempaSpirits[si];
+        sp.life -= dt;
+        sp.trail += dt;
+        var tgt = sp.target;
+        if (tgt && (!tgt.health || tgt.health <= 0)) {
+            tgt = null;
+            sp.target = null;
+            /* reacquire */
+            for (var ei = 0; ei < enemies.length; ei++) {
+                if (enemies[ei] && enemies[ei].health > 0) {
+                    var ed = Math.hypot(enemies[ei].x - sp.x, enemies[ei].y - sp.y);
+                    if (ed < 320) { sp.target = enemies[ei]; tgt = enemies[ei]; break; }
+                }
+            }
+        }
+        if (tgt) {
+            var tx = tgt.x - sp.x;
+            var ty = tgt.y - sp.y;
+            var len = Math.hypot(tx, ty) || 1;
+            sp.vx += (tx / len) * 420 * dt;
+            sp.vy += (ty / len) * 420 * dt;
+            var spd = Math.hypot(sp.vx, sp.vy) || 1;
+            var maxS = sp.speed || 280;
+            if (spd > maxS) { sp.vx = (sp.vx / spd) * maxS; sp.vy = (sp.vy / spd) * maxS; }
+        }
+        sp.x += sp.vx * dt;
+        sp.y += sp.vy * dt;
+
+        var hit = false;
+        if (tgt && Math.hypot(tgt.x - sp.x, tgt.y - sp.y) < 22) {
+            tgt.health = (tgt.health || 1) - sp.damage;
+            hit = true;
+            if (typeof createHitParticles === "function") {
+                try { createHitParticles(sp.x, sp.y); } catch (e3) {}
+            }
+            try {
+                for (var hk = 0; hk < 5; hk++) {
+                    createParticle(sp.x, sp.y, {
+                        vx: (Math.random() - 0.5) * 80,
+                        vy: (Math.random() - 0.5) * 80,
+                        life: 0.3,
+                        size: 2,
+                        color: "#fb923c"
+                    });
+                }
+            } catch (e4) {}
+        }
+        if (hit || sp.life <= 0 || sp.y < -40 || sp.y > canvasHeight + 40 || sp.x < -40 || sp.x > canvasWidth + 40) {
+            cempaSpirits.splice(si, 1);
+        }
+    }
+}
+
+function drawCempasuchilEffects(ctx) {
+    /* petals */
+    for (var i = 0; i < cempaPetals.length; i++) {
+        var pet = cempaPetals[i];
+        if (!pet.alive && pet.alive !== undefined) continue;
+        ctx.save();
+        ctx.translate(pet.x, pet.y);
+        ctx.rotate(pet.angle);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "rgba(251,146,60,0.9)";
+        ctx.fillStyle = "#fb923c";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 7, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#a78bfa";
+        ctx.beginPath();
+        ctx.ellipse(0, -2, 3, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+    /* spirits */
+    for (var s = 0; s < cempaSpirits.length; s++) {
+        var sp = cempaSpirits[s];
+        ctx.save();
+        ctx.translate(sp.x, sp.y);
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = "rgba(167,139,250,0.95)";
+        ctx.fillStyle = "#fde68a";
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fb923c";
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+    /* velo ghost */
+    if (player.cempasuchilShip && player.cempaVeloActive > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.25 + 0.15 * Math.sin(Date.now() / 80);
+        ctx.fillStyle = "#a78bfa";
+        ctx.beginPath();
+        ctx.ellipse(player.x, player.y, player.width * 0.7, player.height * 0.9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+
 function activateNebulaSkill(slot) {
     if (!player.nebulaShip || player.shipId !== "nebula" && !player.nebulaShip) return false;
     if (!game.running || game.paused || game.gameOver) return false;
@@ -6009,6 +6284,9 @@ function activateRpdSkill(slot) {
 }
 
 function activateAbility(id) {
+    if (player.cempasuchilShip || player.shipId === "cempasuchil") {
+        if (activateCempasuchilSkill(id)) return true;
+    }
     if (!game.running || game.paused || game.gameOver) return;
     /* Exclusive ship skills override shop abilities */
     if (player.rpdShip) {
@@ -6115,6 +6393,23 @@ function updateAbilityUI() {
                 if (id === "overdrive") cdElV.textContent = readyV ? "LISTO" : "CAZA";
                 else cdElV.textContent = "";
             }
+            return;
+        }
+        if (player.cempasuchilShip || player.shipId === "cempasuchil") {
+            btn.classList.remove("locked");
+            btn.style.opacity = "";
+            var cdC = 0;
+            var readyC = true;
+            if (id === "emp") { cdC = player.cempaVeloCd || 0; readyC = cdC <= 0; }
+            if (id === "overdrive") { cdC = player.cempaAltarCd || 0; readyC = cdC <= 0 && cempaPetals.length === 0; }
+            if (id === "nova") { cdC = player.cempaOfrendaCd || 0; readyC = cdC <= 0; }
+            btn.title = id === "emp" ? "Velo del Mictlán: invulnerable 1.8s"
+                : id === "overdrive" ? "Altar de Pétalos: 3 interceptores de proyectiles (6s)"
+                : "Ofrenda Errante: 5 espíritus guiados";
+            btn.classList.toggle("ready", readyC);
+            btn.classList.toggle("cooling", !readyC);
+            const cdElC = btn.querySelector(".ability-cd");
+            if (cdElC) cdElC.textContent = cdC > 0 ? Math.ceil(cdC) + "s" : "";
             return;
         }
         if (player.nebulaShip || player.shipId === "nebula") {

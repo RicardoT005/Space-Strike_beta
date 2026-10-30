@@ -74,6 +74,8 @@
             shipId = reward.slice(5);
         } else if (reward === "nebula" || reward === "ship_nebula") {
             shipId = "nebula";
+        } else if (reward === "cempasuchil" || reward === "cempasuchil_eterno" || reward === "ship_cempasuchil") {
+            shipId = "cempasuchil";
         } else if (window.SpaceStrikeShips && window.SpaceStrikeShips.catalog && window.SpaceStrikeShips.catalog[reward]) {
             shipId = reward;
         }
@@ -228,6 +230,7 @@
         }
         if (out.length === 0) {
             out.push({ id: "nebula", name: "NEBULA ★★", desc: "Exclusiva" });
+            out.push({ id: "cempasuchil", name: "CEMPASÚCHIL ETERNO ★★", desc: "Evento Día de Muertos" });
         }
         return out;
     }

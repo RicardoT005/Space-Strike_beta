@@ -4,6 +4,11 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v334_ddm",
+        title: "v3.3.4 — EVENTO DÍA DE MUERTOS",
+        body: "Nueva nave exclusiva CEMPASÚCHIL ETERNO. Canjea un código de evento (10 disponibles). Habilidades: VELO · ALTAR DE PÉTALOS · OFRENDA ERRANTE."
+    },
+    {
         id: "v333",
         title: "v3.3.3 — Ranking solo nube",
         body: "El ranking local permanente se eliminó. Solo se usa buffer offline si no hay internet; al reconectar se sube y se borra."
