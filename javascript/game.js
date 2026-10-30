@@ -1016,9 +1016,9 @@ loadShipSprite("nebula", [
     "/img/ships/nebula.png"
 ]);
 loadShipSprite("overlord", [
-    "../img/bosses/overlord.png",
-    "img/bosses/overlord.png",
-    "/img/bosses/overlord.png"
+    "../img/bosses/overlord-muertos.png",
+    "img/bosses/overlord-muertos.png",
+    "/img/bosses/overlord-muertos.png"
 ]);
 loadShipSprite("rpd", [
     "../img/texturas-especiales/rpd-leon.png",
@@ -4474,9 +4474,9 @@ function spawnBossForWave(wave) {
     }
 
     loadShipSprite("overlord", [
-        "../img/bosses/overlord.png",
-        "img/bosses/overlord.png",
-        "/img/bosses/overlord.png"
+        "../img/bosses/overlord-muertos.png",
+        "img/bosses/overlord-muertos.png",
+        "/img/bosses/overlord-muertos.png"
     ]);
 
     const type = enemyTypes.boss;

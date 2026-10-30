@@ -8,7 +8,7 @@
             id: "horror_jason",
             name: "JASON · VIERNES 13",
             desc: "Skin de combate con máscaras hockey. Montable en Assalto / Interceptor.",
-            ships: ["assault", "interceptor", "nebula"],
+            ships: ["assault", "interceptor", "phoenix", "voidrunner"],
             sprite: "../img/texturas-especiales/skins/horror_jason.png",
             event: "horror_pack"
         },
@@ -16,7 +16,7 @@
             id: "horror_chucky",
             name: "CHUCKY · MUÑECO",
             desc: "Skin roja con caras de muñeco. Assalto / Interceptor.",
-            ships: ["assault", "interceptor", "nebula"],
+            ships: ["assault", "interceptor", "phoenix", "voidrunner"],
             sprite: "../img/texturas-especiales/skins/horror_chucky.png",
             event: "horror_pack"
         },
@@ -24,15 +24,15 @@
             id: "horror_freddy",
             name: "FREDDY · ALAS",
             desc: "Rostros de pesadilla en las alas. Assalto / Spectre.",
-            ships: ["assault", "spectre", "nebula"],
+            ships: ["assault", "spectre", "phoenix"],
             sprite: "../img/texturas-especiales/skins/horror_freddy.png",
             event: "horror_pack"
         },
         horror_rpd_drone: {
             id: "horror_rpd_drone",
-            name: "R.P.D. DRON HORROR",
-            desc: "Textura de dron policial (solo con nave R.P.D.).",
-            ships: ["rpd"],
+            name: "DRON FANTASMA",
+            desc: "Dron temático de evento (visual en naves acorazadas).",
+            ships: ["destroyer", "vt03", "tank"],
             sprite: "../img/texturas-especiales/skins/horror_rpd_drone.png",
             event: "horror_pack",
             drone: true
@@ -41,7 +41,7 @@
             id: "horror_rpd",
             name: "R.P.D. TACTICAL HORROR",
             desc: "Casco militar R.P.D. con sangre. Solo R.P.D. LEON.",
-            ships: ["rpd"],
+            ships: ["destroyer", "vt03", "tank"],
             sprite: "../img/texturas-especiales/skins/horror_rpd.png",
             event: "horror_pack"
         },
@@ -49,7 +49,7 @@
             id: "horror_jason_mil",
             name: "JASON MILITAR",
             desc: "Caza militar con máscaras. Tanque / Assalto.",
-            ships: ["tank", "assault", "nebula"],
+            ships: ["tank", "assault", "vt03"],
             sprite: "../img/texturas-especiales/skins/horror_jason_mil.png",
             event: "horror_pack"
         },
@@ -57,7 +57,7 @@
             id: "horror_jason_02",
             name: "JASON 02/20",
             desc: "Caza pesado numerado. Assalto / Tanque.",
-            ships: ["assault", "tank", "nebula"],
+            ships: ["assault", "tank", "voidrunner"],
             sprite: "../img/texturas-especiales/skins/horror_jason_02.png",
             event: "horror_pack"
         },
@@ -65,7 +65,7 @@
             id: "horror_freddy_hat",
             name: "FREDDY SOMBRERO",
             desc: "Pesadilla con sombrero y garras. Tanque / Destructor.",
-            ships: ["tank", "destroyer", "nebula"],
+            ships: ["tank", "destroyer", "vt03"],
             sprite: "../img/texturas-especiales/skins/horror_freddy_hat.png",
             event: "horror_pack"
         },
@@ -73,7 +73,7 @@
             id: "horror_freddy_claw",
             name: "FREDDY GARRA",
             desc: "Guante de garras doradas. R.P.D. / Tanque.",
-            ships: ["rpd", "tank", "nebula"],
+            ships: ["tank", "destroyer", "phoenix"],
             sprite: "../img/texturas-especiales/skins/horror_freddy_claw.png",
             event: "horror_pack"
         },
@@ -81,7 +81,7 @@
             id: "horror_delta",
             name: "DELTA JASON",
             desc: "Ala delta con máscaras. Spectre / Interceptor.",
-            ships: ["spectre", "interceptor", "nebula"],
+            ships: ["spectre", "interceptor", "voidrunner"],
             sprite: "../img/texturas-especiales/skins/horror_delta.png",
             event: "horror_pack"
         },
@@ -89,7 +89,7 @@
             id: "horror_freddy_heavy",
             name: "FREDDY HEAVY",
             desc: "Acorazado de pesadilla. Tanque / Destructor.",
-            ships: ["tank", "destroyer", "nebula"],
+            ships: ["tank", "destroyer", "vt03"],
             sprite: "../img/texturas-especiales/skins/horror_freddy_heavy.png",
             event: "horror_pack"
         },
@@ -97,10 +97,77 @@
             id: "horror_freddy_delta",
             name: "FREDDY DELTA",
             desc: "Caza delta con garras en motores. Spectre / Assalto.",
-            ships: ["spectre", "assault", "nebula"],
+            ships: ["spectre", "assault", "phoenix"],
             sprite: "../img/texturas-especiales/skins/horror_freddy_delta.png",
             event: "horror_pack"
         }
+
+        /* === Evento Día de Muertos — solo naves comunes + premium (NO especiales) === */
+        muertos_assault: {
+            id: "muertos_assault",
+            name: "ASALTO CEMPASÚCHIL",
+            desc: "Asalto en tonos de ofrenda. Solo naves no especiales.",
+            ships: ["assault", "phoenix"],
+            sprite: "../img/texturas-especiales/evento-muertos/assault.png",
+            event: "dia_muertos"
+        },
+        muertos_interceptor: {
+            id: "muertos_interceptor",
+            name: "INTERCEPTOR OFRENDA",
+            desc: "Interceptor temático Día de Muertos.",
+            ships: ["interceptor", "voidrunner"],
+            sprite: "../img/texturas-especiales/evento-muertos/interceptor.png",
+            event: "dia_muertos"
+        },
+        muertos_tank: {
+            id: "muertos_tank",
+            name: "TANQUE CALAVERA",
+            desc: "Tanque en colores de altar.",
+            ships: ["tank", "vt03"],
+            sprite: "../img/texturas-especiales/evento-muertos/tank.png",
+            event: "dia_muertos"
+        },
+        muertos_spectre: {
+            id: "muertos_spectre",
+            name: "SPECTRE VELADA",
+            desc: "Spectre en púrpura y cempasúchil.",
+            ships: ["spectre", "voidrunner"],
+            sprite: "../img/texturas-especiales/evento-muertos/spectre.png",
+            event: "dia_muertos"
+        },
+        muertos_destroyer: {
+            id: "muertos_destroyer",
+            name: "DESTRUCTOR ALTAREÑO",
+            desc: "Destructor temático del evento.",
+            ships: ["destroyer", "vt03", "phoenix"],
+            sprite: "../img/texturas-especiales/evento-muertos/destroyer.png",
+            event: "dia_muertos"
+        },
+        muertos_vt03: {
+            id: "muertos_vt03",
+            name: "VT-03 NOCHE DE MUERTOS",
+            desc: "Skin premium VT-03 del evento.",
+            ships: ["vt03"],
+            sprite: "../img/texturas-especiales/evento-muertos/vt03.png",
+            event: "dia_muertos"
+        },
+        muertos_phoenix: {
+            id: "muertos_phoenix",
+            name: "PHOENIX OFRENDA",
+            desc: "Skin premium Phoenix del evento.",
+            ships: ["phoenix"],
+            sprite: "../img/texturas-especiales/evento-muertos/phoenix.png",
+            event: "dia_muertos"
+        },
+        muertos_voidrunner: {
+            id: "muertos_voidrunner",
+            name: "VOID RUNNER VELATORIO",
+            desc: "Skin premium Void Runner del evento.",
+            ships: ["voidrunner"],
+            sprite: "../img/texturas-especiales/evento-muertos/voidrunner.png",
+            event: "dia_muertos"
+        },
+
     };
 
     function loadOwned() {

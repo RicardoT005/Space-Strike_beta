@@ -6,13 +6,23 @@
 (function (global) {
     "use strict";
 
-    var CACHE_NAME = "space-strike-assets-v3.3.6";
-    var MANIFEST_KEY = "ss_assets_manifest_v336";
+    var CACHE_NAME = "space-strike-assets-v3.3.8";
+    var MANIFEST_KEY = "ss_assets_manifest_v338";
 
     /** Rutas relativas desde la raíz del sitio (index.html) */
     var ASSETS = [
         "img/marca.png",
         "img/bosses/overlord.png",
+        "img/bosses/overlord-muertos.png",
+        "img/texturas-especiales/evento-muertos/assault.png",
+        "img/texturas-especiales/evento-muertos/interceptor.png",
+        "img/texturas-especiales/evento-muertos/tank.png",
+        "img/texturas-especiales/evento-muertos/spectre.png",
+        "img/texturas-especiales/evento-muertos/destroyer.png",
+        "img/texturas-especiales/evento-muertos/vt03.png",
+        "img/texturas-especiales/evento-muertos/phoenix.png",
+        "img/texturas-especiales/evento-muertos/voidrunner.png",
+
         "img/ui/rpd-badge.png",
         "img/ships/assault.png",
         "img/ships/cempasuchil.png",
