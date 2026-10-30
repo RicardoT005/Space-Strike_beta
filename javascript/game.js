@@ -989,6 +989,17 @@ loadShipSprite("destroyer", [
     "img/ships/t-wind.png",
     "/img/ships/t-wind.png"
 ]);
+    
+    /* Horror / event skins */
+    if (window.SpaceStrikeSkins && window.SpaceStrikeSkins.catalog) {
+        Object.keys(window.SpaceStrikeSkins.catalog).forEach(function (kid) {
+            var sk = window.SpaceStrikeSkins.catalog[kid];
+            if (sk && sk.sprite) {
+                loadShipSprite("skin_" + kid, [sk.sprite, sk.sprite.replace("../", ""), "img/texturas-especiales/skins/" + kid + ".png"]);
+            }
+        });
+    }
+
     loadShipSprite("cempasuchil", [
         "../img/texturas-especiales/cempasuchil-eterno.png",
         "../img/ships/cempasuchil.png",
@@ -2061,6 +2072,20 @@ function drawPlayer() {
         player.vt03Ship = true;
         if (typeof ensureVt03Sprites === "function") ensureVt03Sprites();
     }
+    /* Cosmetic skin overrides base ship texture when compatible */
+    try {
+        if (window.SpaceStrikeSkins && window.SpaceStrikeSkins.getActiveSprite) {
+            var skinPath = window.SpaceStrikeSkins.getActiveSprite(player.shipId || sidTex);
+            if (skinPath) {
+                var skKey = "skin_" + (window.SpaceStrikeSkins.getEquipped() || "");
+                if (shipSprites[skKey] && shipSprites[skKey].ready) {
+                    sidTex = skKey;
+                } else if (typeof loadShipSprite === "function") {
+                    loadShipSprite(skKey, [skinPath]);
+                }
+            }
+        }
+    } catch (eSkin) {}
     var spr = (typeof shipSprites !== "undefined") ? shipSprites[sidTex] : null;
     /* If still loading, keep trying — avoid permanent geometric fallback */
     if (sidTex === "vt03" && (!spr || !spr.ready)) {

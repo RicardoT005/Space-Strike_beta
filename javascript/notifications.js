@@ -4,23 +4,28 @@ const NOTICES_KEY = "spaceStrikeNoticesRead";
 
 const NOTICES = [
     {
+        id: "v335_skins",
+        title: "v3.3.6 — SKINS HORROR",
+        body: "12 texturas especiales montables. Canjéalas con código (skin_...). Se guardan para siempre y se equipan si la nave es compatible."
+    },
+    {
         id: "v334_ddm",
-        title: "v3.3.4 — EVENTO DÍA DE MUERTOS",
+        title: "v3.3.6 — EVENTO DÍA DE MUERTOS",
         body: "Nueva nave exclusiva CEMPASÚCHIL ETERNO. Canjea un código de evento (10 disponibles). Habilidades: VELO · ALTAR DE PÉTALOS · OFRENDA ERRANTE."
     },
     {
         id: "v333",
-        title: "v3.3.3 — Ranking solo nube",
+        title: "v3.3.6 — Ranking solo nube",
         body: "El ranking local permanente se eliminó. Solo se usa buffer offline si no hay internet; al reconectar se sube y se borra."
     },
     {
         id: "v332",
-        title: "v3.3.2 — VT-03 ARSENAL",
+        title: "v3.3.6 — VT-03 ARSENAL",
         body: "VT-03 fase 1 (armada): misiles, láser y doble cañón. Al TRANSFORMAR (fase 2): solo balas normales a alta velocidad. Quédate armado el máximo posible."
     },
     {
         id: "v330",
-        title: "v3.3.0 — PUSH + PROGRAMACIÓN",
+        title: "v3.3.6 — PUSH + PROGRAMACIÓN",
         body: "Notificaciones FCM (con la página cerrada si activaste permisos). Reinicios programados del dueño. Progreso orientado a la nube."
     },
     {

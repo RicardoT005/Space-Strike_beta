@@ -70,6 +70,15 @@
     function applyReward(reward) {
         reward = String(reward || "").toLowerCase().trim();
         var shipId = null;
+        if (reward.indexOf("skin_") === 0) {
+            var skinId = reward.slice(5);
+            if (window.SpaceStrikeSkins && window.SpaceStrikeSkins.grant) {
+                var sg = window.SpaceStrikeSkins.grant(skinId);
+                if (!sg.ok) return sg;
+                return { ok: true, type: "skin", skin: skinId, already: !!sg.already };
+            }
+            return { ok: false, error: "Sistema de skins no cargado" };
+        }
         if (reward.indexOf("ship_") === 0) {
             shipId = reward.slice(5);
         } else if (reward === "nebula" || reward === "ship_nebula") {
@@ -100,7 +109,7 @@
         } catch (e4) {}
         return {
             ok: true,
-            reward: "ship_" + shipId,
+            reward: (isSkin ? "skin_" : "ship_") + shipId,
             owned: res.owned,
             message: "¡Nave " + name + " desbloqueada y equipada! Revisa NAVES ESPECIALES en la Tienda."
         };
@@ -183,7 +192,8 @@
         if (!isAdmin()) {
             return Promise.resolve({ ok: false, error: "No autorizado" });
         }
-        var shipId = String(opts.shipId || "nebula").toLowerCase().trim();
+        var isSkin = !!(opts.skinId || (opts.rewardType === "skin"));
+        var shipId = String(opts.shipId || opts.skinId || "nebula").toLowerCase().trim();
         var uses = Math.max(1, Math.min(1000, Number(opts.uses) || 1));
         var code = opts.code ? normalizeCode(opts.code) : randomCode(opts.prefix || "ESP");
         if (code.length < 4) {
@@ -202,7 +212,7 @@
                     ref = db.collection(COL).doc(code);
                 }
                 var data = {
-                    reward: "ship_" + shipId,
+                    reward: (isSkin ? "skin_" : "ship_") + shipId,
                     usesLeft: uses,
                     maxUses: uses,
                     active: true,

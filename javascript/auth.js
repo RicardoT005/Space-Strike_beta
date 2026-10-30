@@ -112,6 +112,8 @@
                 : (localStorage.getItem("spaceStrikeEquippedShip") || "interceptor"),
             premium: premiumFlag,
             adventure: safeParse("spaceStrikeAdventure", { levels: {} }),
+            ownedSkins: (window.SpaceStrikeSkins && window.SpaceStrikeSkins.loadOwned) ? window.SpaceStrikeSkins.loadOwned() : [],
+            equippedSkin: (window.SpaceStrikeSkins && window.SpaceStrikeSkins.getEquipped) ? window.SpaceStrikeSkins.getEquipped() : "",
             highScore: Number(localStorage.getItem("spaceStrikeHighScore") || 0),
             rank: safeParse("spaceStrikeRank", null),
             xp: Number(localStorage.getItem("spaceStrikeXP") || 0),
@@ -149,7 +151,10 @@
             if (typeof data.highScore === "number") {
                 var local = Number(localStorage.getItem("spaceStrikeHighScore") || 0);
                 if (data.highScore > local) {
-                    localStorage.setItem("spaceStrikeHighScore", String(data.highScore));
+                    try {
+                if (data.ownedSkins && window.SpaceStrikeSkins) window.SpaceStrikeSkins.mergeFromCloud(data);
+            } catch (eSk) {}
+            localStorage.setItem("spaceStrikeHighScore", String(data.highScore));
                 }
             }
             if (data.rank) localStorage.setItem("spaceStrikeRank", JSON.stringify(data.rank));
