@@ -31,6 +31,8 @@ const adventureButton =
 
 const shopButton =
     document.getElementById("shopButton");
+const hangarButton =
+    document.getElementById("hangarButton");
 
 const premiumButton =
     document.getElementById("premiumButton");
@@ -414,6 +416,12 @@ function initializeButtons() {
         );
 
     }
+    if (hangarButton) {
+        hangarButton.addEventListener("click", function () {
+            navigateTo("html/hangar.html");
+        });
+    }
+
 
 
     if (leaderboardButton) {

@@ -56,7 +56,7 @@
     <main class="shop">
         <header class="page-header">
             <div class="page-title">TIENDA</div>
-            <div class="page-subtitle">ARMORY // NAVES Y MEJORAS</div>
+            <div class="page-subtitle">ARMORY // MEJORAS AVENTURA</div>
             <div class="coins-bar">
                 <span class="coins-label">CRÉDITOS</span>
                 <span id="coinsValue" class="coins-value">0</span>
@@ -65,23 +65,16 @@
 
         <div class="separator"></div>
 
-        <p id="invStatus" style="width:min(420px,94vw);margin:8px auto;font-size:10px;color:rgba(180,200,255,0.55);letter-spacing:0.5px;word-break:break-all;">Inventario: …</p>
-        <div class="shop-section-title special">NAVES ESPECIALES</div>
-        <p class="special-hint" id="specialHint">Desbloquea naves exclusivas con códigos en RECOMPENSAS.</p>
-        <section id="specialShipsList" class="shop-list"></section>
-
-        <div class="shop-section-title">NAVES</div>
-        <section id="shipsList" class="shop-list"></section>
-
         <div class="shop-section-title upgrades">MEJORAS</div>
         <section id="shopList" class="shop-list"></section>
 
+        <p style="text-align:center;margin:12px;"><a href="hangar.html" style="color:#c4b5ff;letter-spacing:2px;font-size:12px;">◈ VER NAVES Y SKINS</a></p>
         <section class="actions">
             <button id="backButton" class="menu-button" type="button">
                 <span class="button-icon">&lt;</span> VOLVER AL MENÚ
             </button>
         </section>
-        <div class="version">V3.3.6</div>
+        <div class="version">V3.3.9</div>
     <p style="text-align:center;font-size:12px;opacity:0.7;margin:12px;letter-spacing:1px;">TIENDA · SOLO MODO AVENTURA<br>En Infinito eliges mejoras con tarjetas entre oleadas.</p>
 </main>
 
@@ -101,45 +94,6 @@
     <script src="../javascript/shop.js"></script>
     <script src="../javascript/fullscreen.js"></script>
     <script src="../javascript/managers/ad-manager.js"></script>
-
-<section id="spaceStrikeSkinsPanel" style="width:min(420px,94vw);margin:16px auto;padding:12px;border:1px solid rgba(180,40,40,0.4);border-radius:8px;background:rgba(20,5,5,0.85);">
-  <div style="font-size:12px;letter-spacing:2px;color:#fb7185;font-weight:800;margin-bottom:8px;">☠ SKINS ESPECIALES</div>
-  <p style="font-size:11px;opacity:0.75;margin:0 0 8px;">Canjea códigos (recompensa skin_...). Se quedan para siempre. Solo montan en naves compatibles.</p>
-  <div id="skinsList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;"></div>
-  <button type="button" id="skinUnequipBtn" style="margin-top:8px;width:100%;height:36px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:#222;color:#ddd;cursor:pointer;">Quitar skin (usar textura default)</button>
-</section>
-<script>
-(function(){
-  function render(){
-    var box=document.getElementById("skinsList");
-    if(!box||!window.SpaceStrikeSkins) return;
-    var cat=window.SpaceStrikeSkins.catalog;
-    var eq=window.SpaceStrikeSkins.getEquipped();
-    box.innerHTML="";
-    Object.keys(cat).forEach(function(id){
-      var s=cat[id];
-      var owned=window.SpaceStrikeSkins.owns(id);
-      var row=document.createElement("div");
-      row.style.cssText="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;background:rgba(0,0,0,0.35);font-size:11px;";
-      row.innerHTML="<div style=\"flex:1\"><b style=\"color:#fda4af\">"+s.name+"</b><br><span style=\"opacity:0.7\">"+s.ships.join(", ")+(owned?"":" · bloqueada")+"</span></div>";
-      var btn=document.createElement("button");
-      btn.textContent = !owned ? "🔒" : (eq===id ? "EQUIPADA" : "EQUIPAR");
-      btn.disabled = !owned;
-      btn.style.cssText="height:32px;padding:0 10px;border-radius:5px;border:1px solid rgba(255,100,100,0.4);background:"+(eq===id?"#7f1d1d":"#333")+";color:#fff;cursor:pointer;font-size:10px;";
-      btn.onclick=function(){
-        var r=window.SpaceStrikeSkins.equip(id);
-        if(!r.ok) alert(r.error||"Error");
-        render();
-      };
-      row.appendChild(btn);
-      box.appendChild(row);
-    });
-  }
-  var u=document.getElementById("skinUnequipBtn");
-  if(u) u.onclick=function(){ window.SpaceStrikeSkins&&window.SpaceStrikeSkins.unequip(); render(); };
-  setTimeout(render, 400);
-})();
-</script>
 
 </body>
 </html>
