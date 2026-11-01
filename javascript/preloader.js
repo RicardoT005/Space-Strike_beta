@@ -1,28 +1,21 @@
 /**
- * SPACE STRIKE — Asset Preloader
- * Verifica caché del navegador; si falta alguna textura la descarga.
- * Bloquea menú / juego hasta que todo esté listo.
+ * SPACE STRIKE — Asset Preloader (persistente)
+ * Guarda texturas en Cache API del navegador (disco local).
+ * Si ya están, no vuelve a bajarlas al cambiar de página.
+ * Service worker opcional: sirve img/* desde caché offline.
  */
 (function (global) {
     "use strict";
 
-    var CACHE_NAME = "space-strike-assets-v3.3.8";
-    var MANIFEST_KEY = "ss_assets_manifest_v338";
+    /* Solo cambia esto cuando agregues/quites archivos de verdad */
+    var CACHE_NAME = "ss-textures-v3312";
+    var MANIFEST_KEY = "ss_tex_manifest_v3312";
+    var SESSION_READY_KEY = "ss_tex_session_ready";
 
-    /** Rutas relativas desde la raíz del sitio (index.html) */
     var ASSETS = [
         "img/marca.png",
         "img/bosses/overlord.png",
         "img/bosses/overlord-muertos.png",
-        "img/texturas-especiales/evento-muertos/assault.png",
-        "img/texturas-especiales/evento-muertos/interceptor.png",
-        "img/texturas-especiales/evento-muertos/tank.png",
-        "img/texturas-especiales/evento-muertos/spectre.png",
-        "img/texturas-especiales/evento-muertos/destroyer.png",
-        "img/texturas-especiales/evento-muertos/vt03.png",
-        "img/texturas-especiales/evento-muertos/phoenix.png",
-        "img/texturas-especiales/evento-muertos/voidrunner.png",
-
         "img/ui/rpd-badge.png",
         "img/ships/assault.png",
         "img/ships/cempasuchil.png",
@@ -34,6 +27,8 @@
         "img/ships/spectre.png",
         "img/ships/t-wind.png",
         "img/ships/tank.png",
+        "img/ships/phoenix.png",
+        "img/ships/voidrunner.png",
         "img/ships/vt03.png",
         "img/ships/vt03/core.png",
         "img/ships/vt03/phase1.png",
@@ -62,8 +57,15 @@
         "img/texturas-especiales/skins/horror_freddy_claw.png",
         "img/texturas-especiales/skins/horror_delta.png",
         "img/texturas-especiales/skins/horror_freddy_heavy.png",
-        "img/texturas-especiales/skins/horror_freddy_delta.png"
-        /* cover promocional omitida a propósito (muy pesada, no se usa en juego) */
+        "img/texturas-especiales/skins/horror_freddy_delta.png",
+        "img/texturas-especiales/evento-muertos/assault.png",
+        "img/texturas-especiales/evento-muertos/interceptor.png",
+        "img/texturas-especiales/evento-muertos/tank.png",
+        "img/texturas-especiales/evento-muertos/spectre.png",
+        "img/texturas-especiales/evento-muertos/destroyer.png",
+        "img/texturas-especiales/evento-muertos/vt03.png",
+        "img/texturas-especiales/evento-muertos/phoenix.png",
+        "img/texturas-especiales/evento-muertos/voidrunner.png"
     ];
 
     var state = {
@@ -76,13 +78,17 @@
 
     function rootPrefix() {
         var path = (location.pathname || "").replace(/\\/g, "/");
-        /* páginas en /html/xxx.html → subir un nivel */
         if (/\/html\//i.test(path)) return "../";
         return "";
     }
 
-    function urlFor(rel) {
-        return rootPrefix() + rel;
+    /** URL absoluta — clave para que Cache API funcione entre páginas */
+    function absUrl(rel) {
+        try {
+            return new URL(rootPrefix() + rel, location.href).href;
+        } catch (e) {
+            return rootPrefix() + rel;
+        }
     }
 
     function ensureOverlay() {
@@ -104,16 +110,15 @@
             st.id = "ss-preload-style";
             st.textContent =
                 "#ss-preload{position:fixed;inset:0;z-index:99999;background:#030407;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;}" +
-                "#ss-preload.ss-done{opacity:0;pointer-events:none;transition:opacity .35s ease;}" +
+                "#ss-preload.ss-done{opacity:0;pointer-events:none;transition:opacity .28s ease;}" +
                 ".ss-preload-box{width:min(320px,86vw);text-align:center;}" +
                 ".ss-preload-title{font-size:22px;letter-spacing:6px;color:#e8e4ff;font-weight:700;}" +
                 ".ss-preload-sub{margin-top:8px;font-size:11px;letter-spacing:3px;color:rgba(160,150,220,.7);}" +
                 ".ss-preload-bar{margin:22px 0 10px;height:6px;border-radius:4px;background:rgba(80,70,140,.25);overflow:hidden;}" +
-                ".ss-preload-fill{height:100%;width:0%;background:linear-gradient(90deg,#6a5cff,#c4b5ff);transition:width .15s linear;}" +
+                ".ss-preload-fill{height:100%;width:0%;background:linear-gradient(90deg,#6a5cff,#c4b5ff);transition:width .12s linear;}" +
                 ".ss-preload-pct{font-size:13px;color:#c4b5ff;letter-spacing:2px;}" +
                 ".ss-preload-msg{margin-top:10px;font-size:11px;color:rgba(180,170,220,.55);min-height:16px;}" +
-                "body.ss-loading .menu,body.ss-loading main{pointer-events:none;opacity:.35;}" +
-                "body.ss-loading #startGameButton,body.ss-loading .play-button{pointer-events:none;}";
+                "body.ss-loading .menu,body.ss-loading main{pointer-events:none;opacity:.35;}";
             document.head.appendChild(st);
         }
         return el;
@@ -130,99 +135,168 @@
         if (msgEl && msg) msgEl.textContent = msg;
     }
 
-    function loadImage(url) {
-        return new Promise(function (resolve) {
-            var img = new Image();
-            img.onload = function () {
-                resolve({ ok: true, url: url });
-            };
-            img.onerror = function () {
-                resolve({ ok: false, url: url });
-            };
-            /* cache-bust solo si nunca se cacheó esta versión */
-            img.src = url;
+    function openCache() {
+        if (!("caches" in global)) return Promise.resolve(null);
+        return caches.open(CACHE_NAME).catch(function () {
+            return null;
         });
     }
 
-    function cachePut(url) {
-        if (!("caches" in global)) return Promise.resolve();
-        return caches.open(CACHE_NAME).then(function (cache) {
-            return fetch(url, { cache: "force-cache" }).then(function (res) {
-                if (res && res.ok) return cache.put(url, res.clone());
-            }).catch(function () {});
-        }).catch(function () {});
-    }
-
-    function isInCache(url) {
-        if (!("caches" in global)) return Promise.resolve(false);
-        return caches.open(CACHE_NAME).then(function (cache) {
+    /** ¿Está este asset ya guardado en disco (Cache API)? */
+    function isCached(url) {
+        return openCache().then(function (cache) {
+            if (!cache) return false;
             return cache.match(url).then(function (r) {
-                return !!r;
+                return !!(r && r.ok);
             });
         }).catch(function () {
             return false;
         });
     }
 
-    /** Precarga secuencial en lotes para no saturar móvil */
-    function preloadAll(onProgress) {
-        var prefix = rootPrefix();
-        var list = ASSETS.map(function (r) {
-            return prefix + r;
+    /** Descarga y guarda en Cache API (persistente entre visitas) */
+    function fetchAndCache(url) {
+        return openCache().then(function (cache) {
+            return fetch(url, { credentials: "same-origin", cache: "reload" })
+                .then(function (res) {
+                    if (!res || !res.ok) throw new Error("HTTP " + (res && res.status));
+                    if (cache) {
+                        try {
+                            cache.put(url, res.clone());
+                        } catch (e) {}
+                    }
+                    return true;
+                });
         });
-        var total = list.length;
+    }
+
+    /** Precarga en memoria (Image) usando red o caché HTTP */
+    function warmImage(url) {
+        return new Promise(function (resolve) {
+            var img = new Image();
+            img.onload = function () {
+                resolve(true);
+            };
+            img.onerror = function () {
+                resolve(false);
+            };
+            img.src = url;
+        });
+    }
+
+    function ensureOne(rel, onProgress) {
+        var url = absUrl(rel);
+        return isCached(url).then(function (hit) {
+            if (hit) {
+                return warmImage(url).then(function () {
+                    return { ok: true, cached: true, url: url };
+                });
+            }
+            return fetchAndCache(url)
+                .then(function () {
+                    return warmImage(url).then(function (ok) {
+                        return { ok: ok, cached: false, url: url };
+                    });
+                })
+                .catch(function () {
+                    return warmImage(url).then(function (ok) {
+                        return { ok: ok, cached: false, url: url };
+                    });
+                });
+        });
+    }
+
+    function preloadAll(onProgress) {
+        var total = ASSETS.length;
         var done = 0;
         var failed = [];
-        var CONCURRENCY = 4;
+        var CONCURRENCY = 5;
+        var i = 0;
+        var active = 0;
 
         return new Promise(function (resolve) {
-            var i = 0;
-
             function next() {
                 if (i >= total && active === 0) {
                     resolve({ failed: failed, total: total });
                     return;
                 }
                 while (active < CONCURRENCY && i < total) {
-                    (function (url) {
+                    (function (rel) {
                         active++;
-                        /* primero intenta desde caché HTTP del navegador vía Image */
-                        loadImage(url).then(function (res) {
-                            if (!res.ok) failed.push(url);
-                            else cachePut(url); /* refuerza Cache API */
+                        ensureOne(rel).then(function (res) {
+                            if (!res.ok) failed.push(rel);
                             done++;
                             active--;
-                            if (onProgress) onProgress(done, total, url);
+                            if (onProgress) {
+                                onProgress(
+                                    done,
+                                    total,
+                                    (res.cached ? "Caché · " : "Descarga · ") + (rel.split("/").pop() || "")
+                                );
+                            }
                             next();
                         });
-                    })(list[i++]);
+                    })(ASSETS[i++]);
                 }
             }
-            var active = 0;
             next();
         });
     }
 
-    function finish(overlay) {
+    /** Cuántos assets ya están en Cache API (rápido) */
+    function countCached() {
+        var urls = ASSETS.map(absUrl);
+        return openCache().then(function (cache) {
+            if (!cache) return 0;
+            return Promise.all(
+                urls.map(function (u) {
+                    return cache.match(u).then(function (r) {
+                        return r && r.ok ? 1 : 0;
+                    });
+                })
+            ).then(function (arr) {
+                return arr.reduce(function (a, b) {
+                    return a + b;
+                }, 0);
+            });
+        }).catch(function () {
+            return 0;
+        });
+    }
+
+    function finish(overlay, fromCache) {
         state.ready = true;
         try {
             localStorage.setItem(MANIFEST_KEY, CACHE_NAME + "|" + ASSETS.length);
+            sessionStorage.setItem(SESSION_READY_KEY, "1");
         } catch (e) {}
         document.body.classList.remove("ss-loading");
         if (overlay) {
-            overlay.classList.add("ss-done");
-            setTimeout(function () {
+            if (fromCache) {
                 if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-            }, 400);
+            } else {
+                overlay.classList.add("ss-done");
+                setTimeout(function () {
+                    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                }, 300);
+            }
         }
         try {
             document.dispatchEvent(new CustomEvent("ss-assets-ready"));
-        } catch (e) {}
+        } catch (e2) {}
         if (typeof global.onSpaceStrikeAssetsReady === "function") {
             try {
                 global.onSpaceStrikeAssetsReady();
-            } catch (e2) {}
+            } catch (e3) {}
         }
+    }
+
+    function registerAssetSW() {
+        if (!("serviceWorker" in navigator)) return;
+        var swUrl = rootPrefix() + "sw-assets.js";
+        try {
+            navigator.serviceWorker.register(swUrl, { scope: rootPrefix() || "./" }).catch(function () {});
+        } catch (e) {}
     }
 
     function start(opts) {
@@ -231,31 +305,52 @@
             return state.ready ? Promise.resolve() : waitReady();
         }
         state.started = true;
+        registerAssetSW();
+
+        /* Misma sesión: ya se cargó todo → no mostrar pantalla */
+        try {
+            if (sessionStorage.getItem(SESSION_READY_KEY) === "1") {
+                var m = localStorage.getItem(MANIFEST_KEY);
+                if (m === CACHE_NAME + "|" + ASSETS.length) {
+                    state.ready = true;
+                    document.body.classList.remove("ss-loading");
+                    try {
+                        document.dispatchEvent(new CustomEvent("ss-assets-ready"));
+                    } catch (e) {}
+                    return Promise.resolve();
+                }
+            }
+        } catch (e0) {}
+
         document.body.classList.add("ss-loading");
         var overlay = ensureOverlay();
 
-        /* Si el manifiesto local coincide y Cache API tiene todo, barra rápida */
-        var skipHeavy = false;
-        try {
-            var m = localStorage.getItem(MANIFEST_KEY);
-            if (m === CACHE_NAME + "|" + ASSETS.length) skipHeavy = true;
-        } catch (e) {}
-
-        setProgress(0, state.total, skipHeavy ? "Verificando caché…" : "Descargando texturas…");
-
-        return preloadAll(function (done, total, url) {
-            var name = (url || "").split("/").pop() || "";
-            setProgress(done, total, (skipHeavy ? "OK · " : "Cargando · ") + name);
-        }).then(function (res) {
-            state.failed = res.failed || [];
-            if (state.failed.length) {
-                setProgress(res.total, res.total, "Listo · " + state.failed.length + " opcionales fallaron");
-            } else {
-                setProgress(res.total, res.total, "Todo listo");
+        return countCached().then(function (nCached) {
+            var allCached = nCached >= ASSETS.length;
+            if (allCached) {
+                setProgress(ASSETS.length, ASSETS.length, "Texturas en dispositivo");
+                /* calentar un poco en paralelo sin bloquear mucho */
+                return preloadAll(function (done, total, msg) {
+                    setProgress(done, total, msg);
+                }).then(function () {
+                    finish(overlay, true);
+                });
             }
-            setTimeout(function () {
-                finish(overlay);
-            }, 180);
+
+            setProgress(nCached, ASSETS.length, "Guardando texturas en el dispositivo…");
+            return preloadAll(function (done, total, msg) {
+                setProgress(done, total, msg);
+            }).then(function (res) {
+                state.failed = res.failed || [];
+                if (state.failed.length) {
+                    setProgress(res.total, res.total, "Listo · " + state.failed.length + " opcionales fallaron");
+                } else {
+                    setProgress(res.total, res.total, "Guardado en este dispositivo");
+                }
+                setTimeout(function () {
+                    finish(overlay, false);
+                }, 150);
+            });
         });
     }
 
@@ -276,7 +371,6 @@
         return !!state.ready;
     }
 
-    /** Guard para botones de juego: no navegar hasta estar listo */
     function guardClick(fn) {
         return function (ev) {
             if (!state.ready) {
@@ -288,16 +382,26 @@
         };
     }
 
+    /** Borrar caché de texturas (útil si actualizas assets a la fuerza) */
+    function clearTextureCache() {
+        try {
+            sessionStorage.removeItem(SESSION_READY_KEY);
+            localStorage.removeItem(MANIFEST_KEY);
+        } catch (e) {}
+        if (!("caches" in global)) return Promise.resolve();
+        return caches.delete(CACHE_NAME);
+    }
+
     global.SpaceStrikePreloader = {
         start: start,
         waitReady: waitReady,
         isReady: isReady,
         guardClick: guardClick,
+        clearTextureCache: clearTextureCache,
         assets: ASSETS,
         CACHE_NAME: CACHE_NAME
     };
 
-    /* Auto-start al cargar DOM */
     function boot() {
         start();
     }
