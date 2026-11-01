@@ -121,7 +121,7 @@
                 <span class="button-icon">&lt;</span> VOLVER AL MENÚ
             </button>
         </section>
-        <div class="version">V3.3.9</div>
+        <div class="version">V3.3.10</div>
     </main>
     <div id="transition"></div>
 
@@ -154,10 +154,54 @@
     function shipSpritePath(ship) {
         if (!ship) return null;
         var s = ship.sprite || "";
+        if (!s && ship.texture) s = "../img/ships/" + ship.texture + ".png";
+        if (!s && ship.id) s = "../img/ships/" + ship.id + ".png";
         if (!s) return null;
+        if (s.indexOf("http") === 0 || s.indexOf("data:") === 0) return s;
         if (s.indexOf("../") === 0) return s;
+        if (s.indexOf("./") === 0) return s;
         if (s.indexOf("img/") === 0) return "../" + s;
+        if (s.indexOf("/img/") === 0) return ".." + s;
         return s;
+    }
+
+    /** Prueba varias rutas si la primera falla */
+    function shipSpriteCandidates(ship) {
+        var out = [];
+        var primary = shipSpritePath(ship);
+        if (primary) out.push(primary);
+        var id = ship && ship.id;
+        var tex = ship && ship.texture;
+        var extras = [];
+        if (id) {
+            extras.push("../img/ships/" + id + ".png");
+            extras.push("../img/texturas-especiales/" + id + ".png");
+        }
+        if (tex) extras.push("../img/ships/" + tex + ".png");
+        if (id === "destroyer") extras.push("../img/ships/t-wind.png");
+        if (id === "nebula") extras.push("../img/texturas-especiales/nave-especial.png", "../img/ships/nebula.png");
+        if (id === "rpd") extras.push("../img/texturas-especiales/rpd-leon.png", "../img/ships/rpd.png");
+        if (id === "cempasuchil") extras.push("../img/texturas-especiales/cempasuchil-eterno.png", "../img/ships/cempasuchil.png");
+        if (id === "vt03") extras.push("../img/ships/vt03/phase1.png", "../img/ships/vt03.png");
+        extras.forEach(function (u) {
+            if (out.indexOf(u) < 0) out.push(u);
+        });
+        return out;
+    }
+
+    function loadImgCandidates(urls) {
+        return new Promise(function (resolve) {
+            var i = 0;
+            function tryNext() {
+                if (i >= urls.length) { resolve(null); return; }
+                var url = urls[i++];
+                loadImg(url).then(function (im) {
+                    if (im) resolve(im);
+                    else tryNext();
+                });
+            }
+            tryNext();
+        });
     }
 
     function drawPreview() {
@@ -184,7 +228,6 @@
             return;
         }
         var ship = S.catalog[selectedId];
-        var baseSrc = shipSpritePath(ship);
         var skinSrc = null;
         var skinId = Sk && Sk.getEquipped && Sk.getEquipped();
         if (skinId && Sk.catalog[skinId]) {
@@ -197,7 +240,7 @@
             }
         }
 
-        Promise.all([loadImg(baseSrc), loadImg(skinSrc)]).then(function (arr) {
+        Promise.all([loadImgCandidates(shipSpriteCandidates(ship)), loadImg(skinSrc)]).then(function (arr) {
             var base = arr[0], skin = arr[1];
             ctx.clearRect(0, 0, w, h);
             ctx.fillStyle = "#05060c";
@@ -249,8 +292,16 @@
             var thumb = document.createElement("img");
             thumb.className = "ship-thumb";
             thumb.alt = "";
-            var src = shipSpritePath(ship);
-            if (src) thumb.src = src;
+            var cands = shipSpriteCandidates(ship);
+            if (cands.length) {
+                thumb.src = cands[0];
+                thumb.onerror = (function (list, el) {
+                    var k = 1;
+                    return function () {
+                        if (k < list.length) { el.src = list[k++]; }
+                    };
+                })(cands, thumb);
+            }
             var info = document.createElement("div");
             info.className = "ship-info";
             var tag = ship.special ? "ESPECIAL" : (ship.premium ? "PREMIUM" : "ESTÁNDAR");

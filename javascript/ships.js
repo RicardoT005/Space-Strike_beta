@@ -17,7 +17,8 @@ const SHIP_CATALOG = {
         damageBonus: 0,
         color: "#8a9aab",
         accent: "#e8eef5",
-        texture: "interceptor"
+        texture: "interceptor",
+        sprite: "../img/ships/interceptor.png"
     },
     assault: {
         id: "assault",
@@ -31,7 +32,8 @@ const SHIP_CATALOG = {
         damageBonus: 1,
         color: "#1a2332",
         accent: "#3db4ff",
-        texture: "assault"
+        texture: "assault",
+        sprite: "../img/ships/assault.png"
     },
     tank: {
         id: "tank",
@@ -45,7 +47,8 @@ const SHIP_CATALOG = {
         damageBonus: 0,
         color: "#c8d0d8",
         accent: "#e8eef5",
-        texture: "tank"
+        texture: "tank",
+        sprite: "../img/ships/tank.png"
     },
     spectre: {
         id: "spectre",
@@ -59,7 +62,8 @@ const SHIP_CATALOG = {
         damageBonus: 0,
         color: "#c090ff",
         accent: "#f0e0ff",
-        texture: "spectre"
+        texture: "spectre",
+        sprite: "../img/ships/spectre.png"
     },
     destroyer: {
         id: "destroyer",
@@ -87,7 +91,8 @@ const SHIP_CATALOG = {
         maxHealth: 4,
         damageBonus: 1,
         color: "#ff8c42",
-        accent: "#ffd4a8"
+        accent: "#ffd4a8",
+        sprite: "../img/ships/phoenix.png"
     },
     voidrunner: {
         id: "voidrunner",
@@ -101,7 +106,8 @@ const SHIP_CATALOG = {
         maxHealth: 3,
         damageBonus: 1,
         color: "#a78bfa",
-        accent: "#e9d5ff"
+        accent: "#e9d5ff",
+        sprite: "../img/ships/voidrunner.png"
     },
     vt03: {
         id: "vt03",

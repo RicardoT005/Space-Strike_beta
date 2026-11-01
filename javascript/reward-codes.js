@@ -234,7 +234,7 @@
             Object.keys(window.SpaceStrikeShips.catalog).forEach(function (id) {
                 var s = window.SpaceStrikeShips.catalog[id];
                 if (s.special || s.codeOnly) {
-                    out.push({ id: id, name: s.name, desc: s.desc });
+                    out.push({ id: id, name: s.name, desc: s.desc || "" });
                 }
             });
         }
@@ -245,6 +245,26 @@
         return out;
     }
 
+    /** Lista todas las skins del catálogo (horror + día de muertos, etc.) */
+    function listSkins() {
+        var out = [];
+        if (window.SpaceStrikeSkins && window.SpaceStrikeSkins.catalog) {
+            Object.keys(window.SpaceStrikeSkins.catalog).forEach(function (id) {
+                var s = window.SpaceStrikeSkins.catalog[id];
+                out.push({
+                    id: id,
+                    name: s.name || id,
+                    desc: (s.desc || "") + (s.ships ? " · " + s.ships.join("/") : ""),
+                    event: s.event || ""
+                });
+            });
+        }
+        out.sort(function (a, b) {
+            return String(a.name).localeCompare(String(b.name));
+        });
+        return out;
+    }
+
     window.SpaceStrikeRewards = {
         redeem: redeem,
         applyReward: applyReward,
@@ -252,6 +272,7 @@
         isAdmin: isAdmin,
         getAdminEmail: getAdminEmail,
         listSpecialShips: listSpecialShips,
+        listSkins: listSkins,
         ADMIN_EMAILS: ADMIN_EMAILS,
         ADMIN_EMAIL: ADMIN_EMAILS[0]
     };

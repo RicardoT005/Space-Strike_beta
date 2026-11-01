@@ -50,12 +50,17 @@ body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
 
   <div id="adminPanel">
     <h3>PANEL ADMIN · GENERAR CÓDIGO</h3>
-    <label>NAVE ESPECIAL</label>
+    <label>TIPO DE RECOMPENSA</label>
+    <select id="adminRewardType">
+      <option value="ship">NAVE ESPECIAL</option>
+      <option value="skin">SKIN (DÍA DE MUERTOS / HORROR)</option>
+    </select>
+    <label id="adminRewardLabel">NAVE ESPECIAL</label>
     <select id="adminShip"></select>
     <label>USOS (1–1000)</label>
-    <input id="adminUses" type="number" min="1" max="1000" value="1" style="text-transform:none;">
+    <input id="adminUses" type="number" min="1" max="1000" value="10" style="text-transform:none;">
     <label>PREFIJO (opcional)</label>
-    <input id="adminPrefix" type="text" placeholder="ESP" maxlength="12" value="ESP">
+    <input id="adminPrefix" type="text" placeholder="ESP / SKIN / MUERTOS" maxlength="12" value="ESP">
     <button type="button" id="createCodeBtn">OBTENER NUEVO CÓDIGO</button>
     <div id="adminMsg"></div>
     <div id="generatedCode"></div>
@@ -65,7 +70,7 @@ body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
   <div class="box" style="margin-top:16px;">
     <button type="button" class="menu-button" id="backButton">&lt; VOLVER</button>
   </div>
-  <div class="version">V3.3.8</div>
+  <div class="version">V3.3.9</div>
 </main>
 <div id="transition"></div>
     <script src="../javascript/core/game-state.js"></script>
@@ -77,6 +82,7 @@ body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
     <script src="../javascript/managers/shop-manager.js"></script>
 
 <script src="../javascript/ships.js"></script>
+<script src="../javascript/skins.js"></script>
 <script src="../javascript/auth.js"></script>
 <script src="../javascript/reward-codes.js"></script>
 <script src="../javascript/fullscreen.js"></script>
@@ -95,20 +101,56 @@ body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
 
   function fillShips() {
     var sel = document.getElementById("adminShip");
+    var typeEl = document.getElementById("adminRewardType");
+    var label = document.getElementById("adminRewardLabel");
+    var prefix = document.getElementById("adminPrefix");
+    if (!sel) return;
     sel.innerHTML = "";
-    var list = (window.SpaceStrikeRewards && SpaceStrikeRewards.listSpecialShips()) || [];
+    var isSkin = typeEl && typeEl.value === "skin";
+    if (label) label.textContent = isSkin ? "SKIN" : "NAVE ESPECIAL";
+    if (prefix && !prefix.dataset.touched) {
+      prefix.value = isSkin ? "MUERTOS" : "ESP";
+    }
+    var list = [];
+    if (isSkin) {
+      list = (window.SpaceStrikeRewards && SpaceStrikeRewards.listSkins && SpaceStrikeRewards.listSkins()) || [];
+      if (!list.length && window.SpaceStrikeSkins && SpaceStrikeSkins.catalog) {
+        Object.keys(SpaceStrikeSkins.catalog).forEach(function (id) {
+          var s = SpaceStrikeSkins.catalog[id];
+          list.push({ id: id, name: s.name || id, desc: s.desc || "" });
+        });
+      }
+    } else {
+      list = (window.SpaceStrikeRewards && SpaceStrikeRewards.listSpecialShips()) || [];
+    }
     list.forEach(function (s) {
       var opt = document.createElement("option");
       opt.value = s.id;
       opt.textContent = s.name + " (" + s.id + ")";
       sel.appendChild(opt);
     });
+    if (!list.length) {
+      var o = document.createElement("option");
+      o.value = "";
+      o.textContent = isSkin ? "(Sin skins cargadas)" : "(Sin naves)";
+      sel.appendChild(o);
+    }
   }
 
   function showAdminIfAllowed() {
     if (window.SpaceStrikeRewards && SpaceStrikeRewards.isAdmin()) {
       adminPanel.style.display = "block";
       fillShips();
+    var art = document.getElementById("adminRewardType");
+    if (art && !art._bound) {
+      art._bound = true;
+      art.onchange = function () { fillShips(); };
+    }
+    var pref = document.getElementById("adminPrefix");
+    if (pref && !pref._bound) {
+      pref._bound = true;
+      pref.addEventListener("input", function () { pref.dataset.touched = "1"; });
+    }
     } else {
       adminPanel.style.display = "none";
     }
@@ -148,7 +190,7 @@ body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
           var ir = document.getElementById("invStatusR");
           if (ir) ir.textContent = "Inventario: " + owned.join(", ") + " | Equipada: " + eq;
           var btn = document.getElementById("irTienda");
-          if (btn) { btn.style.display = "block"; btn.onclick = function () { location.href = "shop.html"; }; }
+          if (btn) { btn.style.display = "block"; btn.textContent = "IR A NAVES (HANGAR)"; btn.onclick = function () { location.href = "hangar.html"; }; }
         } catch (e) {}
       } else {
         msg.textContent = (res && res.error) || "Error";
@@ -170,11 +212,20 @@ body{margin:0;background:#030407;color:#fff;font-family:system-ui,sans-serif;}
       am.style.color = "#ff8a8a";
       return;
     }
-    SpaceStrikeRewards.createCode({
-      shipId: document.getElementById("adminShip").value,
+    var rewardType = (document.getElementById("adminRewardType") || {}).value || "ship";
+    var rid = document.getElementById("adminShip").value;
+    var opts = {
       uses: document.getElementById("adminUses").value,
-      prefix: document.getElementById("adminPrefix").value
-    }).then(function (res) {
+      prefix: document.getElementById("adminPrefix").value,
+      rewardType: rewardType
+    };
+    if (rewardType === "skin") {
+      opts.skinId = rid;
+      opts.shipId = rid;
+    } else {
+      opts.shipId = rid;
+    }
+    SpaceStrikeRewards.createCode(opts).then(function (res) {
       if (res && res.ok) {
         lastCode = res.code;
         am.textContent = "Código creado · " + res.uses + " uso(s) · " + res.reward;
