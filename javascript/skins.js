@@ -100,7 +100,7 @@
             ships: ["spectre", "assault", "phoenix"],
             sprite: "../img/texturas-especiales/skins/horror_freddy_delta.png",
             event: "horror_pack"
-        }
+        },
 
         /* === Evento Día de Muertos — solo naves comunes + premium (NO especiales) === */
         muertos_assault: {
@@ -168,7 +168,100 @@
             event: "dia_muertos"
         },
 
+
+        /* === Evento Navidad — skins por nave + especial === */
+        navidad_interceptor: {
+            id: "navidad_interceptor",
+            name: "INTERCEPTOR NOEL",
+            desc: "Skin navideña del Interceptor.",
+            ships: ["interceptor"],
+            sprite: "../img/texturas-especiales/evento-navidad/interceptor.png",
+            event: "navidad"
+        },
+        navidad_assault: {
+            id: "navidad_assault",
+            name: "ASALTO NOEL",
+            desc: "Skin navideña del Asalto.",
+            ships: ["assault"],
+            sprite: "../img/texturas-especiales/evento-navidad/assault.png",
+            event: "navidad"
+        },
+        navidad_tank: {
+            id: "navidad_tank",
+            name: "TANQUE NOEL",
+            desc: "Skin navideña del Tanque.",
+            ships: ["tank"],
+            sprite: "../img/texturas-especiales/evento-navidad/tank.png",
+            event: "navidad"
+        },
+        navidad_spectre: {
+            id: "navidad_spectre",
+            name: "SPECTRE NOEL",
+            desc: "Skin navideña del Spectre.",
+            ships: ["spectre"],
+            sprite: "../img/texturas-especiales/evento-navidad/spectre.png",
+            event: "navidad"
+        },
+        navidad_destroyer: {
+            id: "navidad_destroyer",
+            name: "DESTRUCTOR NOEL",
+            desc: "Skin navideña del Destructor.",
+            ships: ["destroyer"],
+            sprite: "../img/texturas-especiales/evento-navidad/destroyer.png",
+            event: "navidad"
+        },
+        navidad_phoenix: {
+            id: "navidad_phoenix",
+            name: "PHOENIX NOEL",
+            desc: "Skin navideña premium Phoenix.",
+            ships: ["phoenix"],
+            sprite: "../img/texturas-especiales/evento-navidad/phoenix.png",
+            event: "navidad"
+        },
+        navidad_voidrunner: {
+            id: "navidad_voidrunner",
+            name: "VOID RUNNER NOEL",
+            desc: "Skin navideña premium Void Runner.",
+            ships: ["voidrunner"],
+            sprite: "../img/texturas-especiales/evento-navidad/voidrunner.png",
+            event: "navidad"
+        },
+        navidad_vt03: {
+            id: "navidad_vt03",
+            name: "VT-03 NOEL",
+            desc: "Skin navideña premium VT-03.",
+            ships: ["vt03"],
+            sprite: "../img/texturas-especiales/evento-navidad/vt03.png",
+            event: "navidad"
+        },
+        navidad_nebula: {
+            id: "navidad_nebula",
+            name: "NEBULA NOEL",
+            desc: "Skin navideña exclusiva Nebula.",
+            ships: ["nebula"],
+            sprite: "../img/texturas-especiales/evento-navidad/nebula.png",
+            event: "navidad"
+        },
+        navidad_rpd: {
+            id: "navidad_rpd",
+            name: "R.P.D. NOEL",
+            desc: "Skin navideña exclusiva R.P.D. Leon.",
+            ships: ["rpd"],
+            sprite: "../img/texturas-especiales/evento-navidad/rpd.png",
+            event: "navidad"
+        },
+        navidad_rpd_drone: {
+            id: "navidad_rpd_drone",
+            name: "DRON NOEL",
+            desc: "Textura de drone navideño (R.P.D.).",
+            ships: ["rpd"],
+            sprite: "../img/texturas-especiales/evento-navidad/rpd-drone.png",
+            event: "navidad",
+            drone: true
+        },
+
     };
+
 
     function loadOwned() {
         try {

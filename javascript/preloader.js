@@ -8,12 +8,25 @@
     "use strict";
 
     /* Solo cambia esto cuando agregues/quites archivos de verdad */
-    var CACHE_NAME = "ss-textures-v3312";
-    var MANIFEST_KEY = "ss_tex_manifest_v3312";
+    var CACHE_NAME = "ss-textures-v3313";
+    var MANIFEST_KEY = "ss_tex_manifest_v3313";
     var SESSION_READY_KEY = "ss_tex_session_ready";
 
     var ASSETS = [
         "img/marca.png",
+        "img/texturas-especiales/evento-navidad/especial-navidad.png",
+        "img/texturas-especiales/evento-navidad/interceptor.png",
+        "img/texturas-especiales/evento-navidad/assault.png",
+        "img/texturas-especiales/evento-navidad/tank.png",
+        "img/texturas-especiales/evento-navidad/spectre.png",
+        "img/texturas-especiales/evento-navidad/destroyer.png",
+        "img/texturas-especiales/evento-navidad/phoenix.png",
+        "img/texturas-especiales/evento-navidad/voidrunner.png",
+        "img/texturas-especiales/evento-navidad/vt03.png",
+        "img/texturas-especiales/evento-navidad/nebula.png",
+        "img/texturas-especiales/evento-navidad/rpd.png",
+        "img/texturas-especiales/evento-navidad/rpd-drone.png",
+
         "img/bosses/overlord.png",
         "img/bosses/overlord-muertos.png",
         "img/ui/rpd-badge.png",

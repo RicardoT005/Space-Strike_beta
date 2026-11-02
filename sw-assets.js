@@ -1,5 +1,5 @@
 /* SPACE STRIKE — Service Worker: texturas en disco (cache-first) */
-var TEX_CACHE = "ss-textures-v3312";
+var TEX_CACHE = "ss-textures-v3313";
 
 self.addEventListener("install", function (event) {
   self.skipWaiting();

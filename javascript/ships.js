@@ -205,7 +205,32 @@ const SHIP_CATALOG = {
             laserChance: 0.08,
             agility: true
         }
-    }
+    },
+
+    noel: {
+        id: "noel",
+        name: "NOEL ★★",
+        desc: "EXCLUSIVA EVENTO NAVIDAD. Nave especial de temporada. Canjea código en Recompensas.",
+        cost: 0,
+        free: false,
+        special: true,
+        codeOnly: true,
+        speed: 415,
+        fireRate: 135,
+        maxHealth: 4,
+        damageBonus: 1,
+        color: "#c41e3a",
+        accent: "#2e8b57",
+        sprite: "../img/texturas-especiales/evento-navidad/especial-navidad.png",
+        specialStats: {
+            doubleCannon: true,
+            shieldMax: 2,
+            shieldRegenSec: 45,
+            bulletColor: "#ff6b6b",
+            laserChance: 0.08
+        }
+    },
+
 
 };
 
